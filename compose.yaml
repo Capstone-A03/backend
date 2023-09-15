@@ -1,0 +1,44 @@
+services:
+  capstonea03-pg:
+    container_name: capstonea03-pg
+    image: docker.io/postgres:15-alpine
+    restart: unless-stopped
+    networks:
+      - capstonea03-network
+    env_file:
+      - .env.capstonea03
+    environment:
+      TZ: Asia/Jakarta
+    volumes:
+      - ./volume/capstonea03-pg:/var/lib/postgresql/data:Z
+  
+  capstonea03-mongo:
+    container_name: capstonea03-mongo
+    image: docker.io/mongo:7
+    restart: unless-stopped
+    networks:
+      - capstonea03-network
+    env_file:
+      - .env.capstonea03
+    environment:
+      TZ: Asia/Jakarta
+    volumes:
+      - ./volume/capstonea03-mongo:/data/db:Z
+
+  capstonea03-be:
+    container_name: capstonea03-be
+    image: capstonea03:distroless-static-debian11
+    restart: unless-stopped
+    networks:
+      - capstonea03-network
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env.capstonea03
+    environment:
+      TZ: Asia/Jakarta
+    depends_on:
+      - capstonea03-pg
+
+networks:
+  capstonea03-network:
