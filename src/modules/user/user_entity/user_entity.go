@@ -7,6 +7,7 @@ import (
 	applogger "capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/libs/validator"
 	u "capstonea03/be/src/modules/user/user_constant"
+	"reflect"
 )
 
 type UserModel struct {
@@ -79,8 +80,10 @@ func CreateInitialUser() {
 
 func RegisterRoleValidation() {
 	if err := validator.RegisterValidation("role", func(fl validator.FieldLevel) bool {
-		if fl.Field().IsNil() {
-			return true
+		if fl.Field().Kind() == reflect.Pointer {
+			if fl.Field().IsNil() {
+				return true
+			}
 		}
 		if fl.Field().String() == "ADMIN" || fl.Field().String() == "JANITOR" {
 			return true
