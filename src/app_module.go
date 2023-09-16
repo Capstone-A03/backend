@@ -11,6 +11,7 @@ import (
 	"capstonea03/be/src/libs/jwx/jwt"
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
+	finaldump "capstonea03/be/src/modules/final_dump"
 	mapsector "capstonea03/be/src/modules/map_sector"
 	"capstonea03/be/src/modules/mcu"
 	tempdump "capstonea03/be/src/modules/temp_dump"
@@ -118,6 +119,11 @@ func (m *module) load() {
 	})
 
 	tempdump.Load(&tempdump.Module{
+		App: m.app,
+		DB:  pgDB,
+	})
+
+	finaldump.Load(&finaldump.Module{
 		App: m.app,
 		DB:  pgDB,
 	})

@@ -1,4 +1,4 @@
-package mcuentity
+package finaldumpentity
 
 import (
 	"capstonea03/be/src/libs/db/sql"
@@ -8,10 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type McuModel struct {
+type FinalDumpModel struct {
 	sql.Model
-	TempDumpID *uuid.UUID  `gorm:"not null" json:"tempDumpId,omitempty"`
-	Coordinate *Coordinate `gorm:"not null" json:"coordinate,omitempty"`
+	Name        *string     `gorm:"uniqueIndex;not null" json:"name,omitempty"`
+	MapSectorID *uuid.UUID  `gorm:"not null" json:"mapSectorId,omitempty"`
+	Coordinate  *Coordinate `gorm:"not null" json:"coordinate,omitempty"`
 }
 
 type Coordinate struct {
@@ -19,8 +20,8 @@ type Coordinate struct {
 	Longitude *float64 `json:"longitude" validate:"required,omitempty,longitude"`
 }
 
-func (McuModel) TableName() string {
-	return "mcus"
+func (FinalDumpModel) TableName() string {
+	return "final_dumps"
 }
 
 func (c *Coordinate) Scan(value interface{}) error {
@@ -31,23 +32,23 @@ func (c Coordinate) Value() (sql.Value, error) {
 	return sonic.ConfigFastest.Marshal(c)
 }
 
-type mcuDB = sql.Service[McuModel]
+type finalDumpDB = sql.Service[FinalDumpModel]
 
-var mcuRepo *mcuDB
-var logger = applogger.New("McuModule")
+var finalDumpRepo *finalDumpDB
+var logger = applogger.New("FinalDumpModule")
 
 func InitRepository(db *sql.DB) {
 	if db == nil {
 		logger.Panic("db cannot be nil")
 	}
 
-	mcuRepo = sql.NewService[McuModel](db)
+	finalDumpRepo = sql.NewService[FinalDumpModel](db)
 }
 
-func McuRepository() *mcuDB {
-	if mcuRepo == nil {
-		logger.Panic("mcuRepo is nil")
+func FinalDumpRepository() *finalDumpDB {
+	if finalDumpRepo == nil {
+		logger.Panic("finalDumpRepo is nil")
 	}
 
-	return mcuRepo
+	return finalDumpRepo
 }

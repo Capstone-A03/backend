@@ -1,37 +1,33 @@
-package tempdump
+package finaldump
 
 import "github.com/google/uuid"
 
-type getTempDumpListReqQuery struct {
+type getFinalDumpListReqQuery struct {
 	LastID *uuid.UUID `query:"lastId"`
 	Limit  *int       `query:"limit"`
 }
 
-type getTempDumpReqParam struct {
+type getFinalDumpReqParam struct {
 	ID *uuid.UUID `params:"id" validate:"required"`
 }
 
-type addTempDumpReq struct {
+type addFinalDumpReq struct {
+	Name        *string        `json:"name" validate:"required,gt=0"`
 	MapSectorID *uuid.UUID     `json:"mapSectorId" validate:"required"`
 	Coordinate  *coordinateReq `json:"coordinate" validate:"required"`
-	Type        *string        `json:"type" validate:"required,gt=0"`
-	Capacity    *float64       `json:"capacity" validate:"required,gt=0"`
-	Condition   *string        `json:"condition" validate:"required,gt=0"`
 }
 
-type updateTempDumpReqParam struct {
+type updateFinalDumpReqParam struct {
 	ID *uuid.UUID `params:"id" validate:"required"`
 }
 
-type updateTempDumpReq struct {
+type updateFinalDumpReq struct {
+	Name        *string        `json:"name" validate:"omitempty,gt=0"`
 	MapSectorID *uuid.UUID     `json:"mapSectorId"`
 	Coordinate  *coordinateReq `json:"coordinate"`
-	Type        *string        `json:"type" validate:"omitempty,gt=0"`
-	Capacity    *float64       `json:"capacity" validate:"omitempty,gt=0"`
-	Condition   *string        `json:"condition" validate:"omitempty,gt=0"`
 }
 
-type deleteTempDumpReqParam struct {
+type deleteFinalDumpReqParam struct {
 	ID *uuid.UUID `params:"id" validate:"required"`
 }
 
