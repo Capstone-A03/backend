@@ -23,7 +23,7 @@ func NewDB(dialector Dialector) *DB {
 	}
 
 	gracefulshutdown.Add(gracefulshutdown.FnRunInShutdown{
-		FnDescription: "close SQL database",
+		FnDescription: "closing SQL database",
 		Fn: func() {
 			db, err := db.DB()
 			if err != nil {

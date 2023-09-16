@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type getUserListQuery struct {
+type getUserListReqQuery struct {
 	SearchByRole *uc.Role   `query:"role"`
 	LastID       *uuid.UUID `query:"lastId"`
 	Limit        *int       `query:"limit"`

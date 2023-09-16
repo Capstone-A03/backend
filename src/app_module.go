@@ -11,6 +11,7 @@ import (
 	"capstonea03/be/src/libs/jwx/jwt"
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
+	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -96,5 +97,10 @@ func (m *module) load() {
 
 	auth.Load(&auth.Module{
 		App: m.app,
+	})
+
+	truck.Load(&truck.Module{
+		App: m.app,
+		DB:  pgDB,
 	})
 }

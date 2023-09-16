@@ -21,7 +21,7 @@ func (m *Module) controller() {
 }
 
 func (m *Module) getUserList(c *fiber.Ctx) error {
-	query := new(getUserListQuery)
+	query := new(getUserListReqQuery)
 	if err := parser.ParseReqQuery(c, query); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
@@ -64,7 +64,7 @@ func (m *Module) getUser(c *fiber.Ctx) error {
 	userData, err := m.getUserService(param.ID)
 	if err != nil {
 		if sql.IsErrRecordNotFound(err) {
-			return contracts.NewError(fiber.ErrUnauthorized, err.Error())
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
 		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}

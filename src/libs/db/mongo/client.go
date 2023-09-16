@@ -34,7 +34,7 @@ func NewClient(config *Config) *Client {
 	}
 
 	gracefulshutdown.Add(gracefulshutdown.FnRunInShutdown{
-		FnDescription: "disconnect mongodb client",
+		FnDescription: "disconnecting mongodb client",
 		Fn: func() {
 			if err := client.Disconnect(context.TODO()); err != nil {
 				logger.Error(err)
