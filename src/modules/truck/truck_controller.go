@@ -30,6 +30,9 @@ func (m *Module) getTruckList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
+		if sql.IsErrRecordNotFound(err) {
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
+		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 

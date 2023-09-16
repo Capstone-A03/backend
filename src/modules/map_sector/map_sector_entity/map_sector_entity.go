@@ -16,8 +16,8 @@ type MapSectorModel struct {
 type Coordinates []*Coordinate
 
 type Coordinate struct {
-	Latitude  *float64 `json:"latitude" validate:"required,latitude"`
-	Longitude *float64 `json:"longitude" validate:"required,longitude"`
+	Latitude  *float64 `json:"latitude" validate:"required,omitempty,latitude"`
+	Longitude *float64 `json:"longitude" validate:"required,omitempty,longitude"`
 }
 
 func (MapSectorModel) TableName() string {

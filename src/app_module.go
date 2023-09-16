@@ -13,6 +13,7 @@ import (
 	"capstonea03/be/src/modules/auth"
 	mapsector "capstonea03/be/src/modules/map_sector"
 	"capstonea03/be/src/modules/mcu"
+	tempdump "capstonea03/be/src/modules/temp_dump"
 	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
 
@@ -112,6 +113,11 @@ func (m *module) load() {
 	})
 
 	mapsector.Load(&mapsector.Module{
+		App: m.app,
+		DB:  pgDB,
+	})
+
+	tempdump.Load(&tempdump.Module{
 		App: m.app,
 		DB:  pgDB,
 	})

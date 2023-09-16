@@ -30,6 +30,9 @@ func (m *Module) getMcuList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
+		if sql.IsErrRecordNotFound(err) {
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
+		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 
@@ -69,9 +72,8 @@ func (m *Module) addMcu(c *fiber.Ctx) error {
 	}
 
 	mcuData, err := m.addMcuService(&mcue.McuModel{
-		TpsID:     req.TpsID,
-		Latitude:  req.Latitude,
-		Longitude: req.Longitude,
+		TpsID:      req.TpsID,
+		Coordinate: (*mcue.Coordinate)(req.Coordinate),
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -94,9 +96,8 @@ func (m *Module) updateMcu(c *fiber.Ctx) error {
 	}
 
 	mcuData, err := m.updateMcuService(param.ID, &mcue.McuModel{
-		TpsID:     req.TpsID,
-		Latitude:  req.Latitude,
-		Longitude: req.Longitude,
+		TpsID:      req.TpsID,
+		Coordinate: (*mcue.Coordinate)(req.Coordinate),
 	})
 	if err != nil {
 		if sql.IsErrRecordNotFound(err) {

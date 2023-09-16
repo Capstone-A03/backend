@@ -7,10 +7,10 @@ import (
 
 type TruckModel struct {
 	sql.Model
-	LicensePlate    *string `gorm:"uniqueIndex;not null" json:"licensePlate,omitempty"`
-	Type            *string `gorm:"not null" json:"type,omitempty"`
-	Capacity        *int    `gorm:"not null" json:"capacity,omitempty"`
-	FuelConsumption *int    `gorm:"not null" json:"fuelConsumption,omitempty"`
+	LicensePlate    *string  `gorm:"uniqueIndex;not null" json:"licensePlate,omitempty"`
+	Type            *string  `gorm:"not null" json:"type,omitempty"`
+	Capacity        *float64 `gorm:"not null" json:"capacity,omitempty"`
+	FuelConsumption *float64 `gorm:"not null" json:"fuelConsumption,omitempty"`
 }
 
 func (TruckModel) TableName() string {

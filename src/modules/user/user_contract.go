@@ -21,9 +21,9 @@ type updateUserReqParam struct {
 }
 
 type updateUserReq struct {
-	Name     *string `json:"name"`
-	Username *string `json:"username"`
-	Password *string `json:"password"`
+	Name     *string `json:"name" validate:"omitempty,gt=0"`
+	Username *string `json:"username" validate:"omitempty,gt=0"`
+	Password *string `json:"password" validate:"omitempty,gt=0"`
 }
 
 type deleteUserReqParam struct {
