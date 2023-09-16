@@ -1,8 +1,8 @@
-package truck
+package mapsector
 
 import (
 	"capstonea03/be/src/libs/db/sql"
-	te "capstonea03/be/src/modules/truck/truck_entity"
+	mse "capstonea03/be/src/modules/map_sector/map_sector_entity"
 
 	"github.com/google/uuid"
 )
@@ -18,19 +18,19 @@ type paginationQuery struct {
 	total *int
 }
 
-func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.TruckModel, *paginationQuery, error) {
+func (m *Module) getMapSectorListService(pagination *paginationOption) (*[]*mse.MapSectorModel, *paginationQuery, error) {
 	where := []sql.FindAllWhere{}
 	limit := 0
 
 	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		truckData, err := m.getTruckService(pagination.lastID)
+		mapSectorData, err := m.getMapSectorService(pagination.lastID)
 		if err != nil {
 			return nil, nil, err
 		}
 		where = append(where, sql.FindAllWhere{
 			Where: sql.Where{
 				Query: "created_at < ?",
-				Args:  []interface{}{truckData.CreatedAt},
+				Args:  []interface{}{mapSectorData.CreatedAt},
 			},
 			IncludeInCount: false,
 		})
@@ -40,7 +40,7 @@ func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.Truck
 		limit = *pagination.limit
 	}
 
-	data, page, err := te.TruckRepository().FindAll(&sql.FindAllOptions{
+	data, page, err := mse.MapSectorRepository().FindAll(&sql.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]string{"created_at desc"},
@@ -56,8 +56,8 @@ func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.Truck
 	}, nil
 }
 
-func (*Module) getTruckService(id *uuid.UUID) (*te.TruckModel, error) {
-	return te.TruckRepository().FindOne(&sql.FindOneOptions{
+func (*Module) getMapSectorService(id *uuid.UUID) (*mse.MapSectorModel, error) {
+	return mse.MapSectorRepository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -67,11 +67,11 @@ func (*Module) getTruckService(id *uuid.UUID) (*te.TruckModel, error) {
 	})
 }
 
-func (*Module) addTruckService(data *te.TruckModel) (*te.TruckModel, error) {
-	return te.TruckRepository().Create(data)
+func (*Module) addMapSectorService(data *mse.MapSectorModel) (*mse.MapSectorModel, error) {
+	return mse.MapSectorRepository().Create(data)
 }
 
-func (*Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.TruckModel, error) {
+func (*Module) updateMapSectorService(id *uuid.UUID, data *mse.MapSectorModel) (*mse.MapSectorModel, error) {
 	where := []sql.Where{
 		{
 			Query: "id = ?",
@@ -79,19 +79,19 @@ func (*Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.Truck
 		},
 	}
 
-	if _, err := te.TruckRepository().Update(data, &sql.UpdateOptions{
+	if _, err := mse.MapSectorRepository().Update(data, &sql.UpdateOptions{
 		Where: &where,
 	}); err != nil {
 		return nil, err
 	}
 
-	return te.TruckRepository().FindOne(&sql.FindOneOptions{
+	return mse.MapSectorRepository().FindOne(&sql.FindOneOptions{
 		Where: &where,
 	})
 }
 
-func (*Module) deleteTruckService(id *uuid.UUID) error {
-	return te.TruckRepository().Destroy(&te.TruckModel{
+func (*Module) deleteMapSectorService(id *uuid.UUID) error {
+	return mse.MapSectorRepository().Destroy(&mse.MapSectorModel{
 		Model: sql.Model{
 			ID: id,
 		},

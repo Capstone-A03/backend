@@ -18,7 +18,7 @@ type Options struct {
 
 func New(prefix string) *Logger {
 	return &Logger{
-		stdout: log.New(os.Stdout, "[LOG]["+prefix+"]", 0),
-		stderr: log.New(os.Stderr, "[ERROR]["+prefix+"]", 1),
+		stdout: log.New(os.Stdout, "[LOG]["+prefix+"]", log.Ldate|log.Ltime),
+		stderr: log.New(os.Stderr, "[ERROR]["+prefix+"]", log.Ldate|log.Ltime),
 	}
 }

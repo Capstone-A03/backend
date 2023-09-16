@@ -3,12 +3,14 @@ package sql
 import (
 	"capstonea03/be/src/libs/gracefulshutdown"
 	applogger "capstonea03/be/src/libs/logger"
+	"database/sql/driver"
 
 	"gorm.io/gorm"
 )
 
 type DB = gorm.DB
 type Dialector = gorm.Dialector
+type Value = driver.Value
 
 var logger = applogger.New("SQL")
 

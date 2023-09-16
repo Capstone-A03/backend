@@ -109,14 +109,9 @@ func (*Module) updateUserService(id *uuid.UUID, data *ue.UserModel) (*ue.UserMod
 		return nil, err
 	}
 
-	data, err := ue.UserRepository().FindOne(&sql.FindOneOptions{
+	return ue.UserRepository().FindOne(&sql.FindOneOptions{
 		Where: &where,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	return data, nil
 }
 
 func (*Module) deleteUserService(id *uuid.UUID) error {
