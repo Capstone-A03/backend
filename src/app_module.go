@@ -12,6 +12,7 @@ import (
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
 	mapsector "capstonea03/be/src/modules/map_sector"
+	"capstonea03/be/src/modules/mcu"
 	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
 
@@ -98,6 +99,11 @@ func (m *module) load() {
 
 	auth.Load(&auth.Module{
 		App: m.app,
+	})
+
+	mcu.Load(&mcu.Module{
+		App: m.app,
+		DB:  pgDB,
 	})
 
 	truck.Load(&truck.Module{

@@ -38,8 +38,8 @@ func (m *Module) getUserList(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(&contracts.Response{
 		Pagination: &contracts.Pagination{
-			Count: page.count,
 			Limit: page.limit,
+			Count: page.count,
 			Total: page.total,
 		},
 		Data: userListData,

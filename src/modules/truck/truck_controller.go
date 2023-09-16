@@ -35,8 +35,8 @@ func (m *Module) getTruckList(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(&contracts.Response{
 		Pagination: &contracts.Pagination{
-			Count: page.count,
 			Limit: page.limit,
+			Count: page.count,
 			Total: page.total,
 		},
 		Data: truckListData,
@@ -101,6 +101,9 @@ func (m *Module) updateTruck(c *fiber.Ctx) error {
 		FuelConsumption: req.FuelConsumption,
 	})
 	if err != nil {
+		if sql.IsErrRecordNotFound(err) {
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
+		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 
