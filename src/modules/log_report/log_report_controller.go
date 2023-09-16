@@ -5,16 +5,18 @@ import (
 	"capstonea03/be/src/libs/db/mongo"
 	"capstonea03/be/src/libs/db/sql"
 	"capstonea03/be/src/libs/parser"
+	am "capstonea03/be/src/modules/auth/auth_middleware"
 	lre "capstonea03/be/src/modules/log_report/log_report_entity"
+	uc "capstonea03/be/src/modules/user/user_constant"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/log-reports", m.getLogReportList)
-	m.App.Get("/api/v1/log-report/:id", m.getLogReport)
-	m.App.Post("/api/v1/log-report", m.addLogReport)
-	m.App.Patch("/api/v1/log-report/:id", m.updateLogReport)
+	m.App.Get("/api/v1/log-reports", am.AuthGuard(uc.ROLE_ADMIN), m.getLogReportList)
+	m.App.Get("/api/v1/log-report/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getLogReport)
+	m.App.Post("/api/v1/log-report", am.AuthGuard(uc.ROLE_ADMIN), m.addLogReport)
+	m.App.Patch("/api/v1/log-report/:id", am.AuthGuard(uc.ROLE_ADMIN), m.updateLogReport)
 }
 
 func (m *Module) getLogReportList(c *fiber.Ctx) error {

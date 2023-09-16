@@ -14,6 +14,7 @@ import (
 	"capstonea03/be/src/modules/auth"
 	finaldump "capstonea03/be/src/modules/final_dump"
 	logreport "capstonea03/be/src/modules/log_report"
+	logroute "capstonea03/be/src/modules/log_route"
 	mapsector "capstonea03/be/src/modules/map_sector"
 	"capstonea03/be/src/modules/mcu"
 	tempdump "capstonea03/be/src/modules/temp_dump"
@@ -131,6 +132,11 @@ func (m *module) load() {
 	})
 
 	logreport.Load(&logreport.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
+	})
+
+	logroute.Load(&logroute.Module{
 		App:      m.app,
 		DBClient: mongoDBClient,
 	})
