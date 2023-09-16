@@ -71,23 +71,19 @@ func (*Module) addMcuService(data *mcue.McuModel) (*mcue.McuModel, error) {
 	return mcue.McuRepository().Create(data)
 }
 
-func (*Module) updateMcuService(id *uuid.UUID, data *mcue.McuModel) (*mcue.McuModel, error) {
-	where := []sql.Where{
-		{
-			Query: "id = ?",
-			Args:  []interface{}{id},
-		},
-	}
-
+func (m *Module) updateMcuService(id *uuid.UUID, data *mcue.McuModel) (*mcue.McuModel, error) {
 	if _, err := mcue.McuRepository().Update(data, &sql.UpdateOptions{
-		Where: &where,
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	return mcue.McuRepository().FindOne(&sql.FindOneOptions{
-		Where: &where,
-	})
+	return m.getMcuService(id)
 }
 
 func (*Module) deleteMcuService(id *uuid.UUID) error {

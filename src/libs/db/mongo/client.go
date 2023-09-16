@@ -11,8 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Client = mongo.Client
-
 type Config struct {
 	Address  string `validate:"required"`
 	User     string `validate:"required"`

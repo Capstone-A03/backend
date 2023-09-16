@@ -71,23 +71,19 @@ func (*Module) addFinalDumpService(data *fde.FinalDumpModel) (*fde.FinalDumpMode
 	return fde.FinalDumpRepository().Create(data)
 }
 
-func (*Module) updateFinalDumpService(id *uuid.UUID, data *fde.FinalDumpModel) (*fde.FinalDumpModel, error) {
-	where := []sql.Where{
-		{
-			Query: "id = ?",
-			Args:  []interface{}{id},
-		},
-	}
-
+func (m *Module) updateFinalDumpService(id *uuid.UUID, data *fde.FinalDumpModel) (*fde.FinalDumpModel, error) {
 	if _, err := fde.FinalDumpRepository().Update(data, &sql.UpdateOptions{
-		Where: &where,
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	return fde.FinalDumpRepository().FindOne(&sql.FindOneOptions{
-		Where: &where,
-	})
+	return m.getFinalDumpService(id)
 }
 
 func (*Module) deleteFinalDumpService(id *uuid.UUID) error {

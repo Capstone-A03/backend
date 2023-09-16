@@ -4,17 +4,19 @@ import (
 	"capstonea03/be/src/contracts"
 	"capstonea03/be/src/libs/db/sql"
 	"capstonea03/be/src/libs/parser"
+	am "capstonea03/be/src/modules/auth/auth_middleware"
 	fde "capstonea03/be/src/modules/final_dump/final_dump_entity"
+	uc "capstonea03/be/src/modules/user/user_constant"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/final-dumps", m.getFinalDumpList)
-	m.App.Get("/api/v1/final-dump/:id", m.getFinalDump)
-	m.App.Post("/api/v1/final-dump", m.addFinalDump)
-	m.App.Patch("/api/v1/final-dump/:id", m.updateFinalDump)
-	m.App.Delete("/api/v1/final-dump/:id", m.deleteFinalDump)
+	m.App.Get("/api/v1/final-dumps", am.AuthGuard(uc.ROLE_ADMIN), m.getFinalDumpList)
+	m.App.Get("/api/v1/final-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getFinalDump)
+	m.App.Post("/api/v1/final-dump", am.AuthGuard(uc.ROLE_ADMIN), m.addFinalDump)
+	m.App.Patch("/api/v1/final-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.updateFinalDump)
+	m.App.Delete("/api/v1/final-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.deleteFinalDump)
 }
 
 func (m *Module) getFinalDumpList(c *fiber.Ctx) error {

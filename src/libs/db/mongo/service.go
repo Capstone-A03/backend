@@ -85,14 +85,17 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 
 	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	docMap := make(map[string]interface{}, 0)
-	if err := coll.FindOne(context.TODO(), findOptions.Where).Decode(&docMap); err != nil {
+	where := bson.D{}
+	if findOptions != nil && *findOptions.Where != nil {
+		for i := range *findOptions.Where {
+			where = append(where, (*findOptions.Where)[i]...)
+		}
+	}
+
+	if err := coll.FindOne(context.TODO(), where).Decode(docStruct); err != nil {
 		if !IsErrNoDocuments(err) {
 			logger.Error(err)
 		}
-		return nil, err
-	}
-	if err := transformInterfaceToStruct(&docMap, &docStruct); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +105,7 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, error) {
 	model := new(T)
 
-	docStruct := []*T{}
+	docStruct := &[]*T{}
 
 	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 	optsFind := options.Find()
@@ -117,11 +120,11 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 		optsFind = optsFind.SetLimit(FindAllDefaultLimit)
 	}
 
-	where := []Where{}
+	where := bson.D{}
 	if findOptions.Where != nil {
 		for i := range *findOptions.Where {
 			if (*findOptions.Where)[i].IncludeInCount {
-				where = append(where, (*findOptions.Where)[i].Where)
+				where = append(where, (*findOptions.Where)[i].Where...)
 			}
 		}
 	}
@@ -141,7 +144,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	if findOptions.Where != nil {
 		for i := range *findOptions.Where {
 			if !(*findOptions.Where)[i].IncludeInCount {
-				where = append(where, (*findOptions.Where)[i].Where)
+				where = append(where, (*findOptions.Where)[i].Where...)
 			}
 		}
 	}
@@ -149,9 +152,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	if findOptions.Order != nil {
 		order := bson.D{}
 		for i := range *findOptions.Order {
-			order = append(order, bson.E{
-				Key: (*findOptions.Order)[i].Key, Value: (*findOptions.Order)[i].Value,
-			})
+			order = append(order, (*findOptions.Order)[i]...)
 		}
 		optsFind = optsFind.SetSort(&order)
 	}
@@ -162,24 +163,14 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 		return nil, nil, err
 	}
 
-	docMapList := []map[string]interface{}{}
-	for cursor.Next(context.TODO()) {
-		docMap := make(map[string]interface{}, 0)
-		if err := cursor.Decode(&docMap); err != nil {
-			logger.Error(err)
-			return nil, nil, err
-		}
-		docMapList = append(docMapList, docMap)
-	}
-	if len(docMapList) > 0 {
-		if err := transformInterfaceToStruct(&docMapList, &docStruct); err != nil {
-			return nil, nil, err
-		}
+	if err := cursor.All(context.TODO(), docStruct); err != nil {
+		logger.Error(err)
+		return nil, nil, err
 	}
 
-	return &docStruct, &Pagination{
+	return docStruct, &Pagination{
 		Limit: int(*optsFind.Limit),
-		Count: len(docStruct),
+		Count: len(*docStruct),
 		Total: int(total),
 	}, nil
 }
@@ -194,12 +185,9 @@ func (s *Service[T]) Create(data *T) (*primitive.ObjectID, error) {
 
 	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	docMap := make(map[string]interface{}, 0)
-	if err := transformStructToMap(data, &docMap); err != nil {
-		return nil, err
-	}
+	appendTimestamp(data, true)
 
-	result, err := coll.InsertOne(context.TODO(), docMap)
+	result, err := coll.InsertOne(context.TODO(), data)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -220,12 +208,16 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 
 	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	docMap := make(map[string]interface{}, 0)
-	if err := transformStructToMap(data, &docMap); err != nil {
-		return err
+	appendTimestamp(data)
+
+	where := bson.D{}
+	if updateOptions.Where != nil {
+		for i := range *updateOptions.Where {
+			where = append(where, (*updateOptions.Where)[i]...)
+		}
 	}
 
-	result, err := coll.UpdateOne(context.TODO(), updateOptions.Where, bson.D{{Key: "$set", Value: docMap}})
+	result, err := coll.UpdateOne(context.TODO(), where, bson.D{{Key: "$set", Value: data}})
 	if err != nil {
 		logger.Error(err)
 		return err

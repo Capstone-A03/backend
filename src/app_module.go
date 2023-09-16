@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"capstonea03/be/src/libs/db/mongo"
 	"capstonea03/be/src/libs/db/sql"
 	"capstonea03/be/src/libs/db/sql/pg"
 	"capstonea03/be/src/libs/env"
@@ -12,6 +13,7 @@ import (
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
 	finaldump "capstonea03/be/src/modules/final_dump"
+	logreport "capstonea03/be/src/modules/log_report"
 	mapsector "capstonea03/be/src/modules/map_sector"
 	"capstonea03/be/src/modules/mcu"
 	tempdump "capstonea03/be/src/modules/temp_dump"
@@ -36,11 +38,11 @@ func (m *module) load() {
 	}))
 
 	// MongoDB database
-	// mongoDBClient := mongo.NewClient(&mongo.Config{
-	// 	Address:  env.Get(env.MONGO_ADDRESS),
-	// 	User:     env.Get(env.MONGO_INITDB_ROOT_USERNAME),
-	// 	Password: env.Get(env.MONGO_INITDB_ROOT_PASSWORD),
-	// })
+	mongoDBClient := mongo.NewClient(&mongo.Config{
+		Address:  env.Get(env.MONGO_ADDRESS),
+		User:     env.Get(env.MONGO_INITDB_ROOT_USERNAME),
+		Password: env.Get(env.MONGO_INITDB_ROOT_PASSWORD),
+	})
 
 	// JWT
 	jwt.Init(&jwt.Config{
@@ -126,5 +128,10 @@ func (m *module) load() {
 	finaldump.Load(&finaldump.Module{
 		App: m.app,
 		DB:  pgDB,
+	})
+
+	logreport.Load(&logreport.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
 	})
 }

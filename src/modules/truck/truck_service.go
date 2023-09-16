@@ -71,23 +71,19 @@ func (*Module) addTruckService(data *te.TruckModel) (*te.TruckModel, error) {
 	return te.TruckRepository().Create(data)
 }
 
-func (*Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.TruckModel, error) {
-	where := []sql.Where{
-		{
-			Query: "id = ?",
-			Args:  []interface{}{id},
-		},
-	}
-
+func (m *Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.TruckModel, error) {
 	if _, err := te.TruckRepository().Update(data, &sql.UpdateOptions{
-		Where: &where,
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	return te.TruckRepository().FindOne(&sql.FindOneOptions{
-		Where: &where,
-	})
+	return m.getTruckService(id)
 }
 
 func (*Module) deleteTruckService(id *uuid.UUID) error {

@@ -71,23 +71,19 @@ func (*Module) addMapSectorService(data *mse.MapSectorModel) (*mse.MapSectorMode
 	return mse.MapSectorRepository().Create(data)
 }
 
-func (*Module) updateMapSectorService(id *uuid.UUID, data *mse.MapSectorModel) (*mse.MapSectorModel, error) {
-	where := []sql.Where{
-		{
-			Query: "id = ?",
-			Args:  []interface{}{id},
-		},
-	}
-
+func (m *Module) updateMapSectorService(id *uuid.UUID, data *mse.MapSectorModel) (*mse.MapSectorModel, error) {
 	if _, err := mse.MapSectorRepository().Update(data, &sql.UpdateOptions{
-		Where: &where,
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	return mse.MapSectorRepository().FindOne(&sql.FindOneOptions{
-		Where: &where,
-	})
+	return m.getMapSectorService(id)
 }
 
 func (*Module) deleteMapSectorService(id *uuid.UUID) error {

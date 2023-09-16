@@ -71,23 +71,19 @@ func (*Module) addTempDumpService(data *tde.TempDumpModel) (*tde.TempDumpModel, 
 	return tde.TempDumpRepository().Create(data)
 }
 
-func (*Module) updateTempDumpService(id *uuid.UUID, data *tde.TempDumpModel) (*tde.TempDumpModel, error) {
-	where := []sql.Where{
-		{
-			Query: "id = ?",
-			Args:  []interface{}{id},
-		},
-	}
-
+func (m *Module) updateTempDumpService(id *uuid.UUID, data *tde.TempDumpModel) (*tde.TempDumpModel, error) {
 	if _, err := tde.TempDumpRepository().Update(data, &sql.UpdateOptions{
-		Where: &where,
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	return tde.TempDumpRepository().FindOne(&sql.FindOneOptions{
-		Where: &where,
-	})
+	return m.getTempDumpService(id)
 }
 
 func (*Module) deleteTempDumpService(id *uuid.UUID) error {

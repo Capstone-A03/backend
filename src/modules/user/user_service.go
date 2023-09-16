@@ -95,23 +95,19 @@ func (*Module) getUserService(id *uuid.UUID) (*ue.UserModel, error) {
 	})
 }
 
-func (*Module) updateUserService(id *uuid.UUID, data *ue.UserModel) (*ue.UserModel, error) {
-	where := []sql.Where{
-		{
-			Query: "id = ?",
-			Args:  []interface{}{id},
-		},
-	}
-
+func (m *Module) updateUserService(id *uuid.UUID, data *ue.UserModel) (*ue.UserModel, error) {
 	if _, err := ue.UserRepository().Update(data, &sql.UpdateOptions{
-		Where: &where,
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	}); err != nil {
 		return nil, err
 	}
 
-	return ue.UserRepository().FindOne(&sql.FindOneOptions{
-		Where: &where,
-	})
+	return m.getUserService(id)
 }
 
 func (*Module) deleteUserService(id *uuid.UUID) error {
