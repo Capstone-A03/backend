@@ -10,10 +10,10 @@ import (
 
 type LogRouteModel struct {
 	mongo.Model `bson:"inline"`
-	DriverID    *uuid.UUID    `bson:"driver_id,omitempty" json:"driverId"`
-	TruckID     *uuid.UUID    `bson:"truck_id,omitempty" json:"truckId"`
-	TempDumpIDs *[]*uuid.UUID `bson:"temp_dump_ids,omitempty" json:"tempDumpIds"`
-	FinalDumpID *uuid.UUID    `bson:"final_dump_id,omitempty" json:"finalDumpId"`
+	DriverID    *uuid.UUID    `bson:"driver_id,omitempty" json:"driverId,omitempty"`
+	TruckID     *uuid.UUID    `bson:"truck_id,omitempty" json:"truckId,omitempty"`
+	TempDumpIDs *[]*uuid.UUID `bson:"temp_dump_ids,omitempty" json:"tempDumpIds,omitempty"`
+	FinalDumpID *uuid.UUID    `bson:"final_dump_id,omitempty" json:"finalDumpId,omitempty"`
 }
 
 func (LogRouteModel) DatabaseName() string {

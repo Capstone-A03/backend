@@ -10,11 +10,11 @@ import (
 
 type LogCollectionModel struct {
 	mongo.Model `bson:"inline"`
-	RouteID     *mongo.ObjectID `bson:"route_id,omitempty" json:"routeId"`
-	TempDumpID  *uuid.UUID      `bson:"temp_dump_id,omitempty" json:"tempDumpId"`
-	Volume      *float64        `bson:"volume,omitempty" json:"volume"`
-	Status      *string         `bson:"status,omitempty" json:"status"`
-	Note        *string         `bson:"note,omitempty" json:"note"`
+	RouteID     *mongo.ObjectID `bson:"route_id,omitempty" json:"routeId,omitempty"`
+	TempDumpID  *uuid.UUID      `bson:"temp_dump_id,omitempty" json:"tempDumpId,omitempty"`
+	Volume      *float64        `bson:"volume,omitempty" json:"volume,omitempty"`
+	Status      *string         `bson:"status,omitempty" json:"status,omitempty"`
+	Note        *string         `bson:"note,omitempty" json:"note,omitempty"`
 }
 
 func (LogCollectionModel) DatabaseName() string {
