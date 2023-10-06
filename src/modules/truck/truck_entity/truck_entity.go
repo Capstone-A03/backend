@@ -3,14 +3,17 @@ package truckentity
 import (
 	"capstonea03/be/src/libs/db/sql"
 	applogger "capstonea03/be/src/libs/logger"
+
+	"github.com/google/uuid"
 )
 
 type TruckModel struct {
 	sql.Model
-	LicensePlate    *string  `gorm:"uniqueIndex;not null" json:"licensePlate,omitempty"`
-	Type            *string  `gorm:"not null" json:"type,omitempty"`
-	Capacity        *float64 `gorm:"not null" json:"capacity,omitempty"`
-	FuelConsumption *float64 `gorm:"not null" json:"fuelConsumption,omitempty"`
+	MapSectorIDs    *[]*uuid.UUID `gorm:"column:map_sector_ids;type:uuid[];not null" json:"mapSectorIds,omitempty"`
+	LicensePlate    *string       `gorm:"column:license_plate;uniqueIndex;not null" json:"licensePlate,omitempty"`
+	Type            *string       `gorm:"column:type;not null" json:"type,omitempty"`
+	Capacity        *float64      `gorm:"column:capacity;not null" json:"capacity,omitempty"`
+	FuelConsumption *float64      `gorm:"column:fuel_consumption;not null" json:"fuelConsumption,omitempty"`
 }
 
 func (TruckModel) TableName() string {

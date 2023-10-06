@@ -30,9 +30,6 @@ func (m *Module) getLogReportList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
-		if mongo.IsErrNoDocuments(err) {
-			return contracts.NewError(fiber.ErrNotFound, err.Error())
-		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 

@@ -12,8 +12,8 @@ type getMcuReqParam struct {
 }
 
 type addMcuReq struct {
-	TempDumpID *uuid.UUID     `json:"tempDumpId" validate:"required"`
-	Coordinate *coordinateReq `json:"coordinate" validate:"required"`
+	DumpID     *uuid.UUID  `json:"dumpId" validate:"required"`
+	Coordinate *coordinate `json:"coordinate" validate:"required"`
 }
 
 type updateMcuReqParam struct {
@@ -21,15 +21,15 @@ type updateMcuReqParam struct {
 }
 
 type updateMcuReq struct {
-	TempDumpID *uuid.UUID     `json:"tempDumpId"`
-	Coordinate *coordinateReq `json:"coordinate"`
+	DumpID     *uuid.UUID  `json:"dumpId"`
+	Coordinate *coordinate `json:"coordinate"`
 }
 
 type deleteMcuReqParam struct {
 	ID *uuid.UUID `params:"id" validate:"required"`
 }
 
-type coordinateReq struct {
+type coordinate struct {
 	Latitude  *float64 `json:"latitude" validate:"required,latitude"`
 	Longitude *float64 `json:"longitude" validate:"required,longitude"`
 }

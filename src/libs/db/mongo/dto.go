@@ -34,6 +34,10 @@ type UpdateOptions struct {
 	Where *[]Where
 }
 
+type ReplaceOptions struct {
+	Where *[]Where
+}
+
 type DestroyOptions struct {
 	Where *[]Where
 }

@@ -12,10 +12,11 @@ type getTruckReqParam struct {
 }
 
 type addTruckReq struct {
-	LicensePlate    *string  `json:"licensePlate" validate:"required,gt=0"`
-	Type            *string  `json:"type" validate:"required,gt=0"`
-	Capacity        *float64 `json:"capacity" validate:"required,gt=0"`
-	FuelConsumption *float64 `json:"fuelConsumption" validate:"required,gt=0"`
+	MapSectorIDs    *[]*uuid.UUID `json:"mapSectorIds" validate:"gt=0"`
+	LicensePlate    *string       `json:"licensePlate" validate:"gt=0"`
+	Type            *string       `json:"type" validate:"gt=0"`
+	Capacity        *float64      `json:"capacity" validate:"gt=0"`
+	FuelConsumption *float64      `json:"fuelConsumption" validate:"gt=0"`
 }
 
 type updateTruckReqParam struct {
@@ -23,10 +24,11 @@ type updateTruckReqParam struct {
 }
 
 type updateTruckReq struct {
-	LicensePlate    *string  `json:"licensePlate" validate:"omitempty,gt=0"`
-	Type            *string  `json:"type" validate:"omitempty,gt=0"`
-	Capacity        *float64 `json:"capacity" validate:"omitempty,gt=0"`
-	FuelConsumption *float64 `json:"fuelConsumption" validate:"omitempty,gt=0"`
+	MapSectorIDs    *[]*uuid.UUID `json:"mapSectorIds" validate:"omitempty,gt=0"`
+	LicensePlate    *string       `json:"licensePlate" validate:"omitempty,gt=0"`
+	Type            *string       `json:"type" validate:"omitempty,gt=0"`
+	Capacity        *float64      `json:"capacity" validate:"omitempty,gt=0"`
+	FuelConsumption *float64      `json:"fuelConsumption" validate:"omitempty,gt=0"`
 }
 
 type deleteTruckReqParam struct {

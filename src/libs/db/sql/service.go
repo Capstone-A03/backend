@@ -12,7 +12,7 @@ type ModelI interface {
 }
 
 type Service[T ModelI] struct {
-	DB *DB
+	db *DB
 }
 
 func NewService[T ModelI](db *DB) *Service[T] {
@@ -25,7 +25,7 @@ func NewService[T ModelI](db *DB) *Service[T] {
 		logger.Panic(err)
 	}
 
-	return &Service[T]{DB: db}
+	return &Service[T]{db: db}
 }
 
 func Transaction(db *DB, txs ...func(tx *DB) *DB) error {
@@ -44,10 +44,37 @@ func Transaction(db *DB, txs ...func(tx *DB) *DB) error {
 	return nil
 }
 
+func (s *Service[T]) DB() *DB {
+	return s.db
+}
+
+func (s *Service[T]) Exists(existsOptions *ExistsOptions) (*bool, error) {
+	docStruct := new(T)
+
+	existsQuery := s.db.Model(docStruct)
+
+	if existsOptions.Where != nil {
+		for _, where := range *existsOptions.Where {
+			existsQuery = existsQuery.Where(where.Query, where.Args...)
+		}
+	}
+	if existsOptions.IsUnscoped {
+		existsQuery = existsQuery.Unscoped()
+	}
+
+	exists := new(bool)
+	if err := existsQuery.Select("count(*) > 0").Find(exists).Error; err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return exists, nil
+}
+
 func (s *Service[T]) Count(countOptions *CountOptions) (*int64, error) {
 	docStruct := new(T)
 
-	countQuery := s.DB.Model(docStruct)
+	countQuery := s.db.Model(docStruct)
 
 	if countOptions.Where != nil {
 		for _, where := range *countOptions.Where {
@@ -70,7 +97,7 @@ func (s *Service[T]) Count(countOptions *CountOptions) (*int64, error) {
 func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 	docStruct := new(T)
 
-	selectQuery := s.DB.Model(docStruct)
+	selectQuery := s.db.Model(docStruct)
 
 	if findOptions.IncludeTables != nil {
 		for _, table := range *findOptions.IncludeTables {
@@ -104,7 +131,7 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, error) {
 	docStruct := &[]*T{}
 
-	selectQuery := s.DB.Model(docStruct)
+	selectQuery := s.db.Model(docStruct)
 
 	if findOptions.IncludeTables != nil {
 		for _, table := range *findOptions.IncludeTables {
@@ -168,7 +195,7 @@ func (s *Service[T]) Create(data *T, createOptions ...*CreateOptions) (*T, error
 		return nil, err
 	}
 
-	if err := s.CreateTx(s.DB, data, createOptions...).Error; err != nil {
+	if err := s.CreateTx(s.db, data, createOptions...).Error; err != nil {
 		logger.Error(err)
 		return nil, err
 	}
@@ -184,7 +211,7 @@ func (s *Service[T]) BulkCreate(data *[]*T, createOptions ...*CreateOptions) (*[
 		}
 	}
 
-	if err := s.BulkCreateTx(s.DB, data, createOptions...).Error; err != nil {
+	if err := s.BulkCreateTx(s.db, data, createOptions...).Error; err != nil {
 		logger.Error(err)
 		return nil, err
 	}
@@ -198,7 +225,7 @@ func (s *Service[T]) Update(data *T, updateOptions ...*UpdateOptions) (*T, error
 		return nil, err
 	}
 
-	tx := s.UpdateTx(s.DB, data, updateOptions...)
+	tx := s.UpdateTx(s.db, data, updateOptions...)
 	if err := tx.Error; err != nil {
 		logger.Error(err)
 		return nil, err
@@ -218,7 +245,7 @@ func (s *Service[T]) BulkUpdate(data *[]*T, updateOptions ...*UpdateOptions) (*[
 		}
 	}
 
-	tx := s.BulkUpdateTx(s.DB, data, updateOptions...)
+	tx := s.BulkUpdateTx(s.db, data, updateOptions...)
 	if err := tx.Error; err != nil {
 		logger.Error(err)
 		return nil, err
@@ -236,7 +263,7 @@ func (s *Service[T]) Replace(data *T, replaceOptions ...*ReplaceOptions) error {
 		return err
 	}
 
-	tx := s.ReplaceTx(s.DB, data, replaceOptions...)
+	tx := s.ReplaceTx(s.db, data, replaceOptions...)
 	if err := tx.Error; err != nil {
 		logger.Error(err)
 		return err
@@ -248,8 +275,8 @@ func (s *Service[T]) Replace(data *T, replaceOptions ...*ReplaceOptions) error {
 	return nil
 }
 
-func (s *Service[T]) Destroy(data *T, destroyOptions ...*DestroyOptions) error {
-	tx := s.DestroyTx(s.DB, data, destroyOptions...)
+func (s *Service[T]) Destroy(destroyOptions ...*DestroyOptions) error {
+	tx := s.DestroyTx(s.db, destroyOptions...)
 	if err := tx.Error; err != nil {
 		logger.Error(err)
 		return err
@@ -262,7 +289,7 @@ func (s *Service[T]) Destroy(data *T, destroyOptions ...*DestroyOptions) error {
 }
 
 func (s *Service[T]) BulkDestroy(data *[]*T, destroyOptions ...*DestroyOptions) error {
-	tx := s.BulkDestroyTx(s.DB, data, destroyOptions...)
+	tx := s.BulkDestroyTx(s.db, data, destroyOptions...)
 	if err := tx.Error; err != nil {
 		logger.Error(err)
 		return err
@@ -353,8 +380,10 @@ func (s *Service[T]) ReplaceTx(tx *DB, data *T, replaceOptions ...*ReplaceOption
 	return updateQuery.Updates(data)
 }
 
-func (s *Service[T]) DestroyTx(tx *DB, data *T, destroyOptions ...*DestroyOptions) *DB {
-	deleteQuery := tx
+func (s *Service[T]) DestroyTx(tx *DB, destroyOptions ...*DestroyOptions) *DB {
+	docStruct := new(T)
+
+	deleteQuery := tx.Model(docStruct)
 
 	if len(destroyOptions) > 0 && destroyOptions[0].Where != nil {
 		for _, where := range *destroyOptions[0].Where {
@@ -365,7 +394,7 @@ func (s *Service[T]) DestroyTx(tx *DB, data *T, destroyOptions ...*DestroyOption
 		}
 	}
 
-	return deleteQuery.Delete(data)
+	return deleteQuery.Delete(docStruct)
 }
 
 func (s *Service[T]) BulkDestroyTx(tx *DB, data *[]*T, destroyOptions ...*DestroyOptions) *DB {

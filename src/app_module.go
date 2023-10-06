@@ -12,14 +12,14 @@ import (
 	"capstonea03/be/src/libs/jwx/jwt"
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
-	finaldump "capstonea03/be/src/modules/final_dump"
+	"capstonea03/be/src/modules/dump"
 	logcollection "capstonea03/be/src/modules/log_collection"
 	logdump "capstonea03/be/src/modules/log_dump"
 	logreport "capstonea03/be/src/modules/log_report"
 	logroute "capstonea03/be/src/modules/log_route"
 	mapsector "capstonea03/be/src/modules/map_sector"
 	"capstonea03/be/src/modules/mcu"
-	tempdump "capstonea03/be/src/modules/temp_dump"
+	"capstonea03/be/src/modules/route"
 	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
 
@@ -123,12 +123,7 @@ func (m *module) load() {
 		DB:  pgDB,
 	})
 
-	tempdump.Load(&tempdump.Module{
-		App: m.app,
-		DB:  pgDB,
-	})
-
-	finaldump.Load(&finaldump.Module{
+	dump.Load(&dump.Module{
 		App: m.app,
 		DB:  pgDB,
 	})
@@ -151,5 +146,9 @@ func (m *module) load() {
 	logdump.Load(&logdump.Module{
 		App:      m.app,
 		DBClient: mongoDBClient,
+	})
+
+	route.Load(&route.Module{
+		App: m.app,
 	})
 }

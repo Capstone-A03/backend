@@ -12,9 +12,9 @@ import (
 )
 
 type Config struct {
-	Address  string `validate:"required"`
-	User     string `validate:"required"`
-	Password string `validate:"required"`
+	Address  string `validate:"gt=0"`
+	User     string `validate:"gt=0"`
+	Password string `validate:"gt=0"`
 }
 
 var logger = applogger.New("MongoDB")

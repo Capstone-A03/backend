@@ -16,9 +16,9 @@ type getLogCollectionReqParam struct {
 }
 
 type addLogCollectionReq struct {
-	RouteID    *mongo.ObjectID `json:"routeId" validate:"required"`
-	TempDumpID *uuid.UUID      `json:"tempDumpId" validate:"required"`
-	Volume     *float64        `json:"volume" validate:"required,gt=0"`
-	Status     *string         `json:"status" validate:"required,gt=0"`
-	Note       *string         `json:"note"`
+	RouteID *mongo.ObjectID `json:"routeId" validate:"required"`
+	DumpID  *uuid.UUID      `json:"dumpId" validate:"required"`
+	Volume  *float64        `json:"volume" validate:"required"`
+	Status  *string         `json:"status" validate:"gt=0"`
+	Note    *string         `json:"note"`
 }

@@ -1,8 +1,8 @@
-package finaldump
+package dump
 
 import (
 	"capstonea03/be/src/libs/db/sql"
-	fde "capstonea03/be/src/modules/final_dump/final_dump_entity"
+	de "capstonea03/be/src/modules/dump/dump_entity"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,7 +13,7 @@ type Module struct {
 }
 
 func Load(module *Module) {
-	fde.InitRepository(module.DB)
+	de.InitRepository(module.DB)
 
 	module.controller()
 }

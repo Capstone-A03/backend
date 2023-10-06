@@ -16,8 +16,7 @@ type getLogRouteReqParam struct {
 }
 
 type addLogRouteReq struct {
-	DriverID    *uuid.UUID    `json:"driverId" validate:"required"`
-	TruckID     *uuid.UUID    `json:"truckId" validate:"required"`
-	TempDumpIDs *[]*uuid.UUID `json:"tempDumpIds" validate:"required,unique,gt=0"`
-	FinalDumpID *uuid.UUID    `json:"finalDumpId" validate:"required"`
+	DriverID *uuid.UUID    `json:"driverId" validate:"required"`
+	TruckID  *uuid.UUID    `json:"truckId" validate:"required"`
+	DumpIDs  *[]*uuid.UUID `json:"DumpIds" validate:"required,unique,gt=0"`
 }

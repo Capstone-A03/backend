@@ -30,9 +30,6 @@ func (m *Module) getMapSectorList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
-		if sql.IsErrRecordNotFound(err) {
-			return contracts.NewError(fiber.ErrNotFound, err.Error())
-		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 
@@ -77,7 +74,7 @@ func (m *Module) addMapSector(c *fiber.Ctx) error {
 			if req.Polygon == nil {
 				return nil
 			}
-			polygon := mse.Coordinates{}
+			polygon := make(mse.Coordinates, 0, len(*req.Polygon))
 			for i := range *req.Polygon {
 				polygon = append(polygon, &mse.Coordinate{
 					Latitude:  (*req.Polygon)[i].Latitude,
@@ -113,7 +110,7 @@ func (m *Module) updateMapSector(c *fiber.Ctx) error {
 			if req.Polygon == nil {
 				return nil
 			}
-			polygon := mse.Coordinates{}
+			polygon := make(mse.Coordinates, 0, len(*req.Polygon))
 			for i := range *req.Polygon {
 				polygon = append(polygon, &mse.Coordinate{
 					Latitude:  (*req.Polygon)[i].Latitude,

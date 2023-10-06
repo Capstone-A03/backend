@@ -12,10 +12,10 @@ import (
 
 type UserModel struct {
 	sql.Model
-	Name     *string `gorm:"not null" json:"name,omitempty"`
-	Username *string `gorm:"uniqueIndex;not null" json:"username,omitempty"`
-	Password *string `gorm:"not null" json:"-"`
-	Role     *u.Role `gorm:"not null" json:"role,omitempty" validate:"role"`
+	Name     *string `gorm:"column:name;not null" json:"name,omitempty"`
+	Username *string `gorm:"column:username;uniqueIndex;not null" json:"username,omitempty"`
+	Password *string `gorm:"column:password;not null" json:"-"`
+	Role     *u.Role `gorm:"column:role;not null" json:"role,omitempty" validate:"role"`
 }
 
 func (UserModel) TableName() string {

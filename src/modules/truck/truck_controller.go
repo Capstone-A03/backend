@@ -30,9 +30,6 @@ func (m *Module) getTruckList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
-		if sql.IsErrRecordNotFound(err) {
-			return contracts.NewError(fiber.ErrNotFound, err.Error())
-		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 
@@ -71,7 +68,12 @@ func (m *Module) addTruck(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
+	if req.MapSectorIDs != nil {
+
+	}
+
 	truckData, err := m.addTruckService(&te.TruckModel{
+		MapSectorIDs:    req.MapSectorIDs,
 		LicensePlate:    req.LicensePlate,
 		Type:            req.Type,
 		Capacity:        req.Capacity,

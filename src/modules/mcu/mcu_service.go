@@ -87,9 +87,12 @@ func (m *Module) updateMcuService(id *uuid.UUID, data *mcue.McuModel) (*mcue.Mcu
 }
 
 func (*Module) deleteMcuService(id *uuid.UUID) error {
-	return mcue.McuRepository().Destroy(&mcue.McuModel{
-		Model: sql.Model{
-			ID: id,
+	return mcue.McuRepository().Destroy(&sql.DestroyOptions{
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
 		},
 	})
 }

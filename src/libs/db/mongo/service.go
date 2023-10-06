@@ -7,7 +7,6 @@ import (
 	"capstonea03/be/src/libs/validator"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,7 +17,7 @@ type ModelI interface {
 }
 
 type Service[T ModelI] struct {
-	Client *Client
+	client *Client
 }
 
 type Options struct {
@@ -35,17 +34,10 @@ func NewService[T ModelI](client *Client, moptions ...*Options) *Service[T] {
 
 	if len(moptions) > 0 {
 		indexModels := func() []mongo.IndexModel {
-			model := make([]mongo.IndexModel, 0)
-
-			if moptions[0].Expiration > 0 {
-				model = append(model, mongo.IndexModel{
-					Keys:    bson.M{"updated_at": 1},
-					Options: options.Index().SetExpireAfterSeconds(int32(moptions[0].Expiration / time.Second)),
-				})
-			}
+			model := make([]mongo.IndexModel, 0, len(moptions[0].UniqueFields)+1)
 
 			if len(moptions[0].UniqueFields) > 0 {
-				uniqueField := bson.D{}
+				uniqueField := make(bson.D, 0, len(moptions[0].UniqueFields))
 				for _, field := range moptions[0].UniqueFields {
 					uniqueField = append(uniqueField, bson.E{Key: field, Value: 1})
 				}
@@ -55,19 +47,26 @@ func NewService[T ModelI](client *Client, moptions ...*Options) *Service[T] {
 				})
 			}
 
+			if moptions[0].Expiration > 0 {
+				model = append(model, mongo.IndexModel{
+					Keys:    bson.M{"updated_at": 1},
+					Options: options.Index().SetExpireAfterSeconds(int32(moptions[0].Expiration / time.Second)),
+				})
+			}
+
 			return model
 		}()
 
 		client.Database((*model).DatabaseName()).Collection((*model).CollectionName()).Indexes().CreateMany(context.TODO(), indexModels)
 	}
 
-	return &Service[T]{Client: client}
+	return &Service[T]{client: client}
 }
 
 func (s *Service[T]) Count(countOptions *CountOptions) (*int64, error) {
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	count, err := coll.CountDocuments(context.TODO(), countOptions.Where)
 	if err != nil {
@@ -83,7 +82,7 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 
 	docStruct := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	where := bson.D{}
 	if findOptions != nil && *findOptions.Where != nil {
@@ -107,7 +106,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 
 	docStruct := &[]*T{}
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 	optsFind := options.Find()
 
 	if findOptions.Limit != nil && *findOptions.Limit > 0 {
@@ -175,7 +174,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	}, nil
 }
 
-func (s *Service[T]) Create(data *T) (*primitive.ObjectID, error) {
+func (s *Service[T]) Create(data *T) (*ObjectID, error) {
 	if err := validator.Struct(data); err != nil {
 		logger.Error(err)
 		return nil, err
@@ -183,7 +182,7 @@ func (s *Service[T]) Create(data *T) (*primitive.ObjectID, error) {
 
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	appendTimestamp(data, true)
 
@@ -193,7 +192,7 @@ func (s *Service[T]) Create(data *T) (*primitive.ObjectID, error) {
 		return nil, err
 	}
 
-	id := result.InsertedID.(primitive.ObjectID)
+	id := result.InsertedID.(ObjectID)
 
 	return &id, nil
 }
@@ -206,7 +205,7 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	appendTimestamp(data)
 
@@ -223,6 +222,7 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 		return err
 	}
 	if result == nil || result.ModifiedCount == 0 {
+		logger.Error("failed to update the document")
 		return mongo.ErrNoDocuments
 	}
 
@@ -232,9 +232,16 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 func (s *Service[T]) Destroy(destroyOptions *DestroyOptions) error {
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	result, err := coll.DeleteOne(context.TODO(), destroyOptions.Where)
+	where := bson.D{}
+	if destroyOptions.Where != nil {
+		for i := range *destroyOptions.Where {
+			where = append(where, (*destroyOptions.Where)[i]...)
+		}
+	}
+
+	result, err := coll.DeleteOne(context.TODO(), where)
 	if err != nil {
 		logger.Error(err)
 		return err

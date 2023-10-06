@@ -87,9 +87,12 @@ func (m *Module) updateMapSectorService(id *uuid.UUID, data *mse.MapSectorModel)
 }
 
 func (*Module) deleteMapSectorService(id *uuid.UUID) error {
-	return mse.MapSectorRepository().Destroy(&mse.MapSectorModel{
-		Model: sql.Model{
-			ID: id,
+	return mse.MapSectorRepository().Destroy(&sql.DestroyOptions{
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
 		},
 	})
 }

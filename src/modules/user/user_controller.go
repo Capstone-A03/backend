@@ -33,9 +33,6 @@ func (m *Module) getUserList(c *fiber.Ctx) error {
 		byRole: query.SearchByRole,
 	})
 	if err != nil {
-		if sql.IsErrRecordNotFound(err) {
-			return contracts.NewError(fiber.ErrNotFound, err.Error())
-		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 

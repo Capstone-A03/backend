@@ -28,9 +28,6 @@ func (m *Module) getLogRouteList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
-		if mongo.IsErrNoDocuments(err) {
-			return contracts.NewError(fiber.ErrNotFound, err.Error())
-		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 
@@ -70,10 +67,9 @@ func (m *Module) addLogRoute(c *fiber.Ctx) error {
 	}
 
 	logRouteData, err := m.addLogRouteService(&lre.LogRouteModel{
-		DriverID:    req.DriverID,
-		TruckID:     req.TruckID,
-		TempDumpIDs: req.TempDumpIDs,
-		FinalDumpID: req.FinalDumpID,
+		DriverID: req.DriverID,
+		TruckID:  req.TruckID,
+		DumpIDs:  req.DumpIDs,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())

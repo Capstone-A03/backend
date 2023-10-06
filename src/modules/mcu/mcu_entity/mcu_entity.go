@@ -10,17 +10,17 @@ import (
 
 type McuModel struct {
 	sql.Model
-	TempDumpID *uuid.UUID  `gorm:"not null" json:"tempDumpId,omitempty"`
-	Coordinate *Coordinate `gorm:"not null" json:"coordinate,omitempty"`
+	DumpID     *uuid.UUID  `gorm:"column:dump_id;not null" json:"dumpId,omitempty"`
+	Coordinate *Coordinate `gorm:"column:coordinate;not null" json:"coordinate,omitempty"`
+}
+
+func (McuModel) TableName() string {
+	return "mcus"
 }
 
 type Coordinate struct {
 	Latitude  *float64 `json:"latitude" validate:"required,omitempty,latitude"`
 	Longitude *float64 `json:"longitude" validate:"required,omitempty,longitude"`
-}
-
-func (McuModel) TableName() string {
-	return "mcus"
 }
 
 func (c *Coordinate) Scan(value interface{}) error {

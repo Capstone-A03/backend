@@ -11,7 +11,7 @@ import (
 type LogCollectionModel struct {
 	mongo.Model `bson:"inline"`
 	RouteID     *mongo.ObjectID `bson:"route_id,omitempty" json:"routeId,omitempty"`
-	TempDumpID  *uuid.UUID      `bson:"temp_dump_id,omitempty" json:"tempDumpId,omitempty"`
+	DumpID      *uuid.UUID      `bson:"dump_id,omitempty" json:"dumpId,omitempty"`
 	Volume      *float64        `bson:"volume,omitempty" json:"volume,omitempty"`
 	Status      *string         `bson:"status,omitempty" json:"status,omitempty"`
 	Note        *string         `bson:"note,omitempty" json:"note,omitempty"`

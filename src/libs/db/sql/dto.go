@@ -15,6 +15,11 @@ type IncludeTables struct {
 	Args  []interface{}
 }
 
+type ExistsOptions struct {
+	Where      *[]Where
+	IsUnscoped bool
+}
+
 type CountOptions struct {
 	Where      *[]Where
 	IsUnscoped bool

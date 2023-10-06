@@ -87,9 +87,12 @@ func (m *Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.Tru
 }
 
 func (*Module) deleteTruckService(id *uuid.UUID) error {
-	return te.TruckRepository().Destroy(&te.TruckModel{
-		Model: sql.Model{
-			ID: id,
+	return te.TruckRepository().Destroy(&sql.DestroyOptions{
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
 		},
 	})
 }

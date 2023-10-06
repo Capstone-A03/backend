@@ -9,20 +9,15 @@ import (
 
 type MapSectorModel struct {
 	sql.Model
-	Name    *string      `gorm:"uniqueIndex;not null" json:"name,omitempty"`
-	Polygon *Coordinates `gorm:"not null" json:"polygon,omitempty"`
-}
-
-type Coordinates []*Coordinate
-
-type Coordinate struct {
-	Latitude  *float64 `json:"latitude" validate:"required,omitempty,latitude"`
-	Longitude *float64 `json:"longitude" validate:"required,omitempty,longitude"`
+	Name    *string      `gorm:"column:name;uniqueIndex;not null" json:"name,omitempty"`
+	Polygon *Coordinates `gorm:"column:polygon;not null" json:"polygon,omitempty"`
 }
 
 func (MapSectorModel) TableName() string {
 	return "map_sectors"
 }
+
+type Coordinates []*Coordinate
 
 func (c *Coordinates) Scan(value interface{}) error {
 	return sonic.ConfigFastest.Unmarshal(value.([]byte), c)
@@ -30,6 +25,11 @@ func (c *Coordinates) Scan(value interface{}) error {
 
 func (c Coordinates) Value() (sql.Value, error) {
 	return sonic.ConfigFastest.Marshal(c)
+}
+
+type Coordinate struct {
+	Latitude  *float64 `json:"latitude" validate:"required,omitempty,latitude"`
+	Longitude *float64 `json:"longitude" validate:"required,omitempty,longitude"`
 }
 
 type mapSectorDB = sql.Service[MapSectorModel]

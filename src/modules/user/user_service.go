@@ -111,9 +111,12 @@ func (m *Module) updateUserService(id *uuid.UUID, data *ue.UserModel) (*ue.UserM
 }
 
 func (*Module) deleteUserService(id *uuid.UUID) error {
-	return ue.UserRepository().Destroy(&ue.UserModel{
-		Model: sql.Model{
-			ID: id,
+	return ue.UserRepository().Destroy(&sql.DestroyOptions{
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
 		},
 	})
 }

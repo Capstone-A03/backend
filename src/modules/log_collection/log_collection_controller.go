@@ -28,9 +28,6 @@ func (m *Module) getLogCollectionList(c *fiber.Ctx) error {
 		limit:  query.Limit,
 	})
 	if err != nil {
-		if mongo.IsErrNoDocuments(err) {
-			return contracts.NewError(fiber.ErrNotFound, err.Error())
-		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 
@@ -70,11 +67,11 @@ func (m *Module) addLogCollection(c *fiber.Ctx) error {
 	}
 
 	logCollectionData, err := m.addLogCollectionService(&lce.LogCollectionModel{
-		RouteID:    req.RouteID,
-		TempDumpID: req.TempDumpID,
-		Volume:     req.Volume,
-		Status:     req.Status,
-		Note:       req.Note,
+		RouteID: req.RouteID,
+		DumpID:  req.DumpID,
+		Volume:  req.Volume,
+		Status:  req.Status,
+		Note:    req.Note,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
