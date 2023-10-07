@@ -2,6 +2,7 @@ package truck
 
 import (
 	"capstonea03/be/src/libs/db/sql"
+	mse "capstonea03/be/src/modules/map_sector/map_sector_entity"
 	te "capstonea03/be/src/modules/truck/truck_entity"
 
 	"github.com/google/uuid"
@@ -62,6 +63,17 @@ func (*Module) getTruckService(id *uuid.UUID) (*te.TruckModel, error) {
 			{
 				Query: "id = ?",
 				Args:  []interface{}{id},
+			},
+		},
+	})
+}
+
+func (*Module) getMapSectorService(mapSectorID *uuid.UUID) (*mse.MapSectorModel, error) {
+	return mse.MapSectorRepository().FindOne(&sql.FindOneOptions{
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{mapSectorID},
 			},
 		},
 	})

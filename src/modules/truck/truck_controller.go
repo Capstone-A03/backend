@@ -68,8 +68,26 @@ func (m *Module) addTruck(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	if req.MapSectorIDs != nil {
+	ch := make([]chan error, len(*req.MapSectorIDs))
+	for i := range *req.MapSectorIDs {
+		idx := i
+		go func() {
+			defer close(ch[idx])
 
+			if _, err := m.getMapSectorService((*req.MapSectorIDs)[idx]); err != nil {
+				ch[idx] <- err
+			}
+			ch[idx] <- nil
+		}()
+	}
+	for i := range ch {
+		err := <-ch[i]
+		if err != nil {
+			if sql.IsErrRecordNotFound(err) {
+				return contracts.NewError(fiber.ErrBadRequest, err.Error())
+			}
+			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+		}
 	}
 
 	truckData, err := m.addTruckService(&te.TruckModel{
@@ -99,7 +117,32 @@ func (m *Module) updateTruck(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
+	if req.MapSectorIDs != nil {
+		ch := make([]chan error, len(*req.MapSectorIDs))
+		for i := range *req.MapSectorIDs {
+			idx := i
+			go func() {
+				defer close(ch[idx])
+
+				if _, err := m.getMapSectorService((*req.MapSectorIDs)[idx]); err != nil {
+					ch[idx] <- err
+				}
+				ch[idx] <- nil
+			}()
+		}
+		for i := range ch {
+			err := <-ch[i]
+			if err != nil {
+				if sql.IsErrRecordNotFound(err) {
+					return contracts.NewError(fiber.ErrBadRequest, err.Error())
+				}
+				return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+			}
+		}
+	}
+
 	truckData, err := m.updateTruckService(param.ID, &te.TruckModel{
+		MapSectorIDs:    req.MapSectorIDs,
 		LicensePlate:    req.LicensePlate,
 		Type:            req.Type,
 		Capacity:        req.Capacity,
