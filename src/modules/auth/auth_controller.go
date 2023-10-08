@@ -17,8 +17,8 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Post("/api/v1/signup", am.AuthGuard(uc.ROLE_ADMIN), m.signup)
-	m.App.Post("/api/v1/signin", m.signin)
+	m.App.Post("/api/v1/auth/signup", am.AuthGuard(uc.ROLE_ADMIN), m.signup)
+	m.App.Post("/api/v1/auth/signin", m.signin)
 	m.App.Get("/api/v1/auth", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getAuth)
 }
 

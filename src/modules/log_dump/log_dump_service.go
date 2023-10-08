@@ -20,25 +20,27 @@ func (m *Module) getLogDumpListService(pagination *paginationOption) (*[]*lde.Lo
 	where := []mongo.FindAllWhere{}
 	limit := 0
 
-	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		logDumpData, err := m.getLogDumpService(pagination.lastID)
-		if err != nil {
-			return nil, nil, err
-		}
-		where = append(where, mongo.FindAllWhere{
-			Where: mongo.Where{{
-				Key: "created_at",
-				Value: mongo.Where{{
-					Key:   "$lt",
-					Value: logDumpData.CreatedAt,
+	if pagination != nil {
+		if !mongo.IsEmptyObjectID(pagination.lastID) {
+			logDumpData, err := m.getLogDumpService(pagination.lastID)
+			if err != nil {
+				return nil, nil, err
+			}
+			where = append(where, mongo.FindAllWhere{
+				Where: mongo.Where{{
+					Key: "created_at",
+					Value: mongo.Where{{
+						Key:   "$lt",
+						Value: logDumpData.CreatedAt,
+					}},
 				}},
-			}},
-			IncludeInCount: false,
-		})
-	}
+				IncludeInCount: false,
+			})
+		}
 
-	if pagination.limit != nil && *pagination.limit > 0 {
-		limit = *pagination.limit
+		if pagination.limit != nil && *pagination.limit > 0 {
+			limit = *pagination.limit
+		}
 	}
 
 	data, page, err := lde.Repository().FindAll(&mongo.FindAllOptions{

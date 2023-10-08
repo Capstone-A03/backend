@@ -23,22 +23,24 @@ func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.Truck
 	where := []sql.FindAllWhere{}
 	limit := 0
 
-	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		truckData, err := m.getTruckService(pagination.lastID)
-		if err != nil {
-			return nil, nil, err
+	if pagination != nil {
+		if pagination.lastID != nil {
+			truckData, err := m.getTruckService(pagination.lastID)
+			if err != nil {
+				return nil, nil, err
+			}
+			where = append(where, sql.FindAllWhere{
+				Where: sql.Where{
+					Query: "created_at < ?",
+					Args:  []interface{}{truckData.CreatedAt},
+				},
+				IncludeInCount: false,
+			})
 		}
-		where = append(where, sql.FindAllWhere{
-			Where: sql.Where{
-				Query: "created_at < ?",
-				Args:  []interface{}{truckData.CreatedAt},
-			},
-			IncludeInCount: false,
-		})
-	}
 
-	if pagination.limit != nil && *pagination.limit > 0 {
-		limit = *pagination.limit
+		if pagination.limit != nil && *pagination.limit > 0 {
+			limit = *pagination.limit
+		}
 	}
 
 	data, page, err := te.Repository().FindAll(&sql.FindAllOptions{

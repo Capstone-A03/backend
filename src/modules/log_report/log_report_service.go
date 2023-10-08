@@ -21,25 +21,27 @@ func (m *Module) getLogReportListService(pagination *paginationOption) (*[]*lre.
 	where := []mongo.FindAllWhere{}
 	limit := 0
 
-	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		logReportData, err := m.getLogReportService(pagination.lastID)
-		if err != nil {
-			return nil, nil, err
-		}
-		where = append(where, mongo.FindAllWhere{
-			Where: mongo.Where{{
-				Key: "created_at",
-				Value: mongo.Where{{
-					Key:   "$lt",
-					Value: logReportData.CreatedAt,
+	if pagination != nil {
+		if !mongo.IsEmptyObjectID(pagination.lastID) {
+			logReportData, err := m.getLogReportService(pagination.lastID)
+			if err != nil {
+				return nil, nil, err
+			}
+			where = append(where, mongo.FindAllWhere{
+				Where: mongo.Where{{
+					Key: "created_at",
+					Value: mongo.Where{{
+						Key:   "$lt",
+						Value: logReportData.CreatedAt,
+					}},
 				}},
-			}},
-			IncludeInCount: false,
-		})
-	}
+				IncludeInCount: false,
+			})
+		}
 
-	if pagination.limit != nil && *pagination.limit > 0 {
-		limit = *pagination.limit
+		if pagination.limit != nil && *pagination.limit > 0 {
+			limit = *pagination.limit
+		}
 	}
 
 	data, page, err := lre.Repository().FindAll(&mongo.FindAllOptions{

@@ -50,22 +50,24 @@ func (m *Module) getUserListService(pagination *paginationOption, search *search
 		}
 	}
 
-	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		userData, err := m.getUserService(pagination.lastID)
-		if err != nil {
-			return nil, nil, err
+	if pagination != nil {
+		if pagination.lastID != nil {
+			userData, err := m.getUserService(pagination.lastID)
+			if err != nil {
+				return nil, nil, err
+			}
+			where = append(where, sql.FindAllWhere{
+				Where: sql.Where{
+					Query: "created_at < ?",
+					Args:  []interface{}{userData.CreatedAt},
+				},
+				IncludeInCount: false,
+			})
 		}
-		where = append(where, sql.FindAllWhere{
-			Where: sql.Where{
-				Query: "created_at < ?",
-				Args:  []interface{}{userData.CreatedAt},
-			},
-			IncludeInCount: false,
-		})
-	}
 
-	if pagination.limit != nil && *pagination.limit > 0 {
-		limit = *pagination.limit
+		if pagination.limit != nil && *pagination.limit > 0 {
+			limit = *pagination.limit
+		}
 	}
 
 	data, page, err := ue.Repository().FindAll(&sql.FindAllOptions{

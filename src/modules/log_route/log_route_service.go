@@ -20,25 +20,27 @@ func (m *Module) getLogRouteListService(pagination *paginationOption) (*[]*lre.L
 	where := []mongo.FindAllWhere{}
 	limit := 0
 
-	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		logRouteData, err := m.getLogRouteService(pagination.lastID)
-		if err != nil {
-			return nil, nil, err
-		}
-		where = append(where, mongo.FindAllWhere{
-			Where: mongo.Where{{
-				Key: "created_at",
-				Value: mongo.Where{{
-					Key:   "$lt",
-					Value: logRouteData.CreatedAt,
+	if pagination != nil {
+		if !mongo.IsEmptyObjectID(pagination.lastID) {
+			logRouteData, err := m.getLogRouteService(pagination.lastID)
+			if err != nil {
+				return nil, nil, err
+			}
+			where = append(where, mongo.FindAllWhere{
+				Where: mongo.Where{{
+					Key: "created_at",
+					Value: mongo.Where{{
+						Key:   "$lt",
+						Value: logRouteData.CreatedAt,
+					}},
 				}},
-			}},
-			IncludeInCount: false,
-		})
-	}
+				IncludeInCount: false,
+			})
+		}
 
-	if pagination.limit != nil && *pagination.limit > 0 {
-		limit = *pagination.limit
+		if pagination.limit != nil && *pagination.limit > 0 {
+			limit = *pagination.limit
+		}
 	}
 
 	data, page, err := lre.Repository().FindAll(&mongo.FindAllOptions{

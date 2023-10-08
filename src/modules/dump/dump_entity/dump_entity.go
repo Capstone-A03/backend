@@ -68,8 +68,8 @@ func (d DumpType) Value() (sql.Value, error) {
 }
 
 type Coordinate struct {
-	Latitude  *float64 `json:"latitude" validate:"required,omitempty,latitude"`
-	Longitude *float64 `json:"longitude" validate:"required,omitempty,longitude"`
+	Latitude  *float64 `json:"latitude" validate:"omitempty,latitude"`
+	Longitude *float64 `json:"longitude" validate:"omitempty,longitude"`
 }
 
 func (c *Coordinate) Scan(value interface{}) error {

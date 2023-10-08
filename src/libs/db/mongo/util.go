@@ -11,6 +11,11 @@ func IsErrNoDocuments(err error) bool {
 	return err == mongo.ErrNoDocuments
 }
 
+func IsEmptyObjectID(id *ObjectID) bool {
+	emptyID := ObjectID{}
+	return id == nil || *id == emptyID
+}
+
 func appendTimestamp[T any](data *T, setCreatedAt ...bool) error {
 	docBytes, err := bson.Marshal(data)
 	if err != nil {

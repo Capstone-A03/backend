@@ -96,7 +96,7 @@ func (m *Module) getDumpListService(search *searchOption, pagination *pagination
 	}
 
 	if pagination != nil {
-		if pagination.lastID != nil && len(*pagination.lastID) > 0 {
+		if pagination.lastID != nil {
 			mcuData, err := m.getDumpService(pagination.lastID)
 			if err != nil {
 				return nil, nil, err

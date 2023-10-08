@@ -1,10 +1,9 @@
 package mongo
 
 import (
+	"capstonea03/be/src/libs/validator"
 	"context"
 	"time"
-
-	"capstonea03/be/src/libs/validator"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,10 +33,10 @@ func NewService[T ModelI](client *Client, moptions ...*Options) *Service[T] {
 
 	if len(moptions) > 0 {
 		indexModels := func() []mongo.IndexModel {
-			model := make([]mongo.IndexModel, 0, len(moptions[0].UniqueFields)+1)
+			model := make([]mongo.IndexModel, 0)
 
 			if len(moptions[0].UniqueFields) > 0 {
-				uniqueField := make(bson.D, 0, len(moptions[0].UniqueFields))
+				uniqueField := bson.D{}
 				for _, field := range moptions[0].UniqueFields {
 					uniqueField = append(uniqueField, bson.E{Key: field, Value: 1})
 				}
@@ -68,7 +67,16 @@ func (s *Service[T]) Count(countOptions *CountOptions) (*int64, error) {
 
 	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	count, err := coll.CountDocuments(context.TODO(), countOptions.Where)
+	where := bson.D{}
+	if countOptions != nil {
+		if countOptions.Where != nil {
+			for i := range *countOptions.Where {
+				where = append(where, (*countOptions.Where)[i]...)
+			}
+		}
+	}
+
+	count, err := coll.CountDocuments(context.TODO(), where)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
@@ -85,9 +93,11 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	where := bson.D{}
-	if findOptions != nil && *findOptions.Where != nil {
-		for i := range *findOptions.Where {
-			where = append(where, (*findOptions.Where)[i]...)
+	if findOptions != nil {
+		if findOptions.Where != nil {
+			for i := range *findOptions.Where {
+				where = append(where, (*findOptions.Where)[i]...)
+			}
 		}
 	}
 
@@ -109,7 +119,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 	optsFind := options.Find()
 
-	if findOptions.Limit != nil && *findOptions.Limit > 0 {
+	if findOptions != nil && findOptions.Limit != nil && *findOptions.Limit > 0 {
 		if *findOptions.Limit < FindAllMaximumLimit {
 			optsFind = optsFind.SetLimit(int64(*findOptions.Limit))
 		} else {
@@ -120,10 +130,12 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	}
 
 	where := bson.D{}
-	if findOptions.Where != nil {
-		for i := range *findOptions.Where {
-			if (*findOptions.Where)[i].IncludeInCount {
-				where = append(where, (*findOptions.Where)[i].Where...)
+	if findOptions != nil {
+		if findOptions.Where != nil {
+			for i := range *findOptions.Where {
+				if (*findOptions.Where)[i].IncludeInCount {
+					where = append(where, (*findOptions.Where)[i].Where...)
+				}
 			}
 		}
 	}
@@ -134,26 +146,28 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 		return nil, nil, err
 	}
 
-	if findOptions.Offset != nil && *findOptions.Offset > 0 {
+	if findOptions != nil && findOptions.Offset != nil && *findOptions.Offset > 0 {
 		optsFind = optsFind.SetSkip(int64(*findOptions.Offset))
 	} else {
 		optsFind = optsFind.SetSkip(0)
 	}
 
-	if findOptions.Where != nil {
-		for i := range *findOptions.Where {
-			if !(*findOptions.Where)[i].IncludeInCount {
-				where = append(where, (*findOptions.Where)[i].Where...)
+	if findOptions != nil {
+		if findOptions.Where != nil {
+			for i := range *findOptions.Where {
+				if !(*findOptions.Where)[i].IncludeInCount {
+					where = append(where, (*findOptions.Where)[i].Where...)
+				}
 			}
 		}
-	}
 
-	if findOptions.Order != nil {
-		order := bson.D{}
-		for i := range *findOptions.Order {
-			order = append(order, (*findOptions.Order)[i]...)
+		if findOptions.Order != nil {
+			order := bson.D{}
+			for i := range *findOptions.Order {
+				order = append(order, (*findOptions.Order)[i]...)
+			}
+			optsFind = optsFind.SetSort(&order)
 		}
-		optsFind = optsFind.SetSort(&order)
 	}
 
 	cursor, err := coll.Find(context.TODO(), where, optsFind)
@@ -210,9 +224,11 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 	appendTimestamp(data)
 
 	where := bson.D{}
-	if updateOptions.Where != nil {
-		for i := range *updateOptions.Where {
-			where = append(where, (*updateOptions.Where)[i]...)
+	if updateOptions != nil {
+		if updateOptions.Where != nil {
+			for i := range *updateOptions.Where {
+				where = append(where, (*updateOptions.Where)[i]...)
+			}
 		}
 	}
 
@@ -235,9 +251,11 @@ func (s *Service[T]) Destroy(destroyOptions *DestroyOptions) error {
 	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	where := bson.D{}
-	if destroyOptions.Where != nil {
-		for i := range *destroyOptions.Where {
-			where = append(where, (*destroyOptions.Where)[i]...)
+	if destroyOptions != nil {
+		if destroyOptions.Where != nil {
+			for i := range *destroyOptions.Where {
+				where = append(where, (*destroyOptions.Where)[i]...)
+			}
 		}
 	}
 

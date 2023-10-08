@@ -22,22 +22,24 @@ func (m *Module) getMcuListService(pagination *paginationOption) (*[]*mcue.McuMo
 	where := []sql.FindAllWhere{}
 	limit := 0
 
-	if pagination.lastID != nil && len(*pagination.lastID) > 0 {
-		mcuData, err := m.getMcuService(pagination.lastID)
-		if err != nil {
-			return nil, nil, err
+	if pagination != nil {
+		if pagination.lastID != nil {
+			mcuData, err := m.getMcuService(pagination.lastID)
+			if err != nil {
+				return nil, nil, err
+			}
+			where = append(where, sql.FindAllWhere{
+				Where: sql.Where{
+					Query: "created_at < ?",
+					Args:  []interface{}{mcuData.CreatedAt},
+				},
+				IncludeInCount: false,
+			})
 		}
-		where = append(where, sql.FindAllWhere{
-			Where: sql.Where{
-				Query: "created_at < ?",
-				Args:  []interface{}{mcuData.CreatedAt},
-			},
-			IncludeInCount: false,
-		})
-	}
 
-	if pagination.limit != nil && *pagination.limit > 0 {
-		limit = *pagination.limit
+		if pagination.limit != nil && *pagination.limit > 0 {
+			limit = *pagination.limit
+		}
 	}
 
 	data, page, err := mcue.Repository().FindAll(&sql.FindAllOptions{
