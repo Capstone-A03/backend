@@ -1,18 +1,17 @@
 package mongo
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Where = bson.E
+type Where []primitive.E
 
 type FindAllWhere struct {
 	Where          Where
 	IncludeInCount bool
 }
 
-type Order = bson.E
+type Order []primitive.E
 
 type CountOptions struct {
 	Where *[]Where
@@ -32,6 +31,10 @@ type FindAllOptions struct {
 }
 
 type UpdateOptions struct {
+	Where *[]Where
+}
+
+type ReplaceOptions struct {
 	Where *[]Where
 }
 

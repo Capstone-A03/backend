@@ -7,9 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type DB = gorm.DB
-type Dialector = gorm.Dialector
-
 var logger = applogger.New("SQL")
 
 func NewDB(dialector Dialector) *DB {
@@ -23,7 +20,7 @@ func NewDB(dialector Dialector) *DB {
 	}
 
 	gracefulshutdown.Add(gracefulshutdown.FnRunInShutdown{
-		FnDescription: "close SQL database",
+		FnDescription: "closing SQL database",
 		Fn: func() {
 			db, err := db.DB()
 			if err != nil {

@@ -1,18 +1,31 @@
 package user
 
-import "github.com/google/uuid"
+import (
+	uc "capstonea03/be/src/modules/user/user_constant"
 
-type getUserReqQuery struct {
-	ID *uuid.UUID `query:"id" validate:"required"`
+	"github.com/google/uuid"
+)
+
+type getUserListReqQuery struct {
+	SearchByRole *uc.Role   `query:"role"`
+	LastID       *uuid.UUID `query:"lastId"`
+	Limit        *int       `query:"limit"`
+}
+
+type getUserReqParam struct {
+	ID *uuid.UUID `params:"id" validate:"required"`
+}
+
+type updateUserReqParam struct {
+	ID *uuid.UUID `params:"id" validate:"required"`
 }
 
 type updateUserReq struct {
-	ID       *uuid.UUID `json:"id" validate:"required"`
-	Name     *string    `json:"name"`
-	Username *string    `json:"username"`
-	Password *string    `json:"password"`
+	Name     *string `json:"name" validate:"omitempty,gt=0"`
+	Username *string `json:"username" validate:"omitempty,gt=0"`
+	Password *string `json:"password" validate:"omitempty,gt=0"`
 }
 
-type deleteUserReq struct {
-	ID *uuid.UUID `json:"id" validate:"required"`
+type deleteUserReqParam struct {
+	ID *uuid.UUID `params:"id" validate:"required"`
 }

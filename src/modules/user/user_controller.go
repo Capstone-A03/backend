@@ -14,9 +14,36 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/user", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getUser)
-	m.App.Patch("/api/v1/user", am.AuthGuard(uc.ROLE_ADMIN), m.updateUser)
-	m.App.Delete("/api/v1/user", am.AuthGuard(uc.ROLE_ADMIN), m.deleteUser)
+	m.App.Get("/api/v1/users", m.getUserList)
+	m.App.Get("/api/v1/user/:id", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getUser)
+	m.App.Patch("/api/v1/user/:id", am.AuthGuard(uc.ROLE_ADMIN), m.updateUser)
+	m.App.Delete("/api/v1/user/:id", am.AuthGuard(uc.ROLE_ADMIN), m.deleteUser)
+}
+
+func (m *Module) getUserList(c *fiber.Ctx) error {
+	query := new(getUserListReqQuery)
+	if err := parser.ParseReqQuery(c, query); err != nil {
+		return contracts.NewError(fiber.ErrBadRequest, err.Error())
+	}
+
+	userListData, page, err := m.getUserListService(&paginationOption{
+		lastID: query.LastID,
+		limit:  query.Limit,
+	}, &searchOption{
+		byRole: query.SearchByRole,
+	})
+	if err != nil {
+		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+	}
+
+	return c.Status(fiber.StatusOK).JSON(&contracts.Response{
+		Pagination: &contracts.Pagination{
+			Limit: page.limit,
+			Count: page.count,
+			Total: page.total,
+		},
+		Data: userListData,
+	})
 }
 
 func (m *Module) getUser(c *fiber.Ctx) error {
@@ -25,19 +52,19 @@ func (m *Module) getUser(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrUnauthorized, err.Error())
 	}
 
-	query := new(getUserReqQuery)
-	if err := parser.ParseReqQuery(c, query); err != nil {
+	param := new(getUserReqParam)
+	if err := parser.ParseReqParam(c, param); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	if *token.Role != uc.ROLE_ADMIN && *token.ID != *query.ID {
+	if *token.Role != uc.ROLE_ADMIN && *token.ID != *param.ID {
 		return contracts.NewError(fiber.ErrForbidden, "you are prohibited from accessing this resource")
 	}
 
-	userData, err := m.getUserService(query.ID)
+	userData, err := m.getUserService(param.ID)
 	if err != nil {
 		if sql.IsErrRecordNotFound(err) {
-			return contracts.NewError(fiber.ErrUnauthorized, err.Error())
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
 		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
@@ -48,6 +75,11 @@ func (m *Module) getUser(c *fiber.Ctx) error {
 }
 
 func (m *Module) updateUser(c *fiber.Ctx) error {
+	param := new(updateUserReqParam)
+	if err := parser.ParseReqParam(c, param); err != nil {
+		return contracts.NewError(fiber.ErrBadRequest, err.Error())
+	}
+
 	req := new(updateUserReq)
 	if err := parser.ParseReqBody(c, req); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
@@ -66,7 +98,7 @@ func (m *Module) updateUser(c *fiber.Ctx) error {
 		userData.Password = encodedHash
 	}
 
-	userData, err := m.updateUserService(req.ID, userData)
+	userData, err := m.updateUserService(param.ID, userData)
 	if err != nil {
 		if sql.IsErrRecordNotFound(err) {
 			return contracts.NewError(fiber.ErrNotFound, err.Error())
@@ -85,12 +117,12 @@ func (m *Module) deleteUser(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrUnauthorized, err.Error())
 	}
 
-	req := new(deleteUserReq)
-	if err := parser.ParseReqBody(c, req); err != nil {
+	param := new(deleteUserReqParam)
+	if err := parser.ParseReqParam(c, param); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	if *token.ID == *req.ID {
+	if *token.ID == *param.ID {
 		if count, err := m.countUserWithAdminRoleService(); err != nil {
 			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 		} else if *count == 1 {
@@ -100,7 +132,7 @@ func (m *Module) deleteUser(c *fiber.Ctx) error {
 		}
 	}
 
-	if err := m.deleteUserService(req.ID); err != nil {
+	if err := m.deleteUserService(param.ID); err != nil {
 		if sql.IsErrRecordNotFound(err) {
 			return contracts.NewError(fiber.ErrNotFound, err.Error())
 		}
@@ -108,6 +140,6 @@ func (m *Module) deleteUser(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(&contracts.Response{
-		Data: req.ID,
+		Data: param.ID,
 	})
 }

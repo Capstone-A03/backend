@@ -11,12 +11,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Client = mongo.Client
-
 type Config struct {
-	Address  string `validate:"required"`
-	User     string `validate:"required"`
-	Password string `validate:"required"`
+	Address  string `validate:"gt=0"`
+	User     string `validate:"gt=0"`
+	Password string `validate:"gt=0"`
 }
 
 var logger = applogger.New("MongoDB")
@@ -34,7 +32,7 @@ func NewClient(config *Config) *Client {
 	}
 
 	gracefulshutdown.Add(gracefulshutdown.FnRunInShutdown{
-		FnDescription: "disconnect mongodb client",
+		FnDescription: "disconnecting mongodb client",
 		Fn: func() {
 			if err := client.Disconnect(context.TODO()); err != nil {
 				logger.Error(err)

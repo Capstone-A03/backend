@@ -8,7 +8,7 @@ import (
 )
 
 func (m *Module) getUserService(id *uuid.UUID) (*ue.UserModel, error) {
-	return ue.UserRepository().FindOne(&sql.FindOneOptions{
+	return ue.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -19,7 +19,7 @@ func (m *Module) getUserService(id *uuid.UUID) (*ue.UserModel, error) {
 }
 
 func (m *Module) getUserByUsernameService(username *string) (*ue.UserModel, error) {
-	return ue.UserRepository().FindOne(&sql.FindOneOptions{
+	return ue.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "username = ?",
@@ -30,5 +30,5 @@ func (m *Module) getUserByUsernameService(username *string) (*ue.UserModel, erro
 }
 
 func (m *Module) addUserService(data *ue.UserModel) (*ue.UserModel, error) {
-	return ue.UserRepository().Create(data)
+	return ue.Repository().Create(data)
 }

@@ -21,7 +21,7 @@ func Add(newFns ...FnRunInShutdown) {
 }
 
 func Run() {
-	logger.Log("listen to shutdown signals")
+	logger.Log("listening to shutdown signals")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGTERM)

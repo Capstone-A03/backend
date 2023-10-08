@@ -1,7 +1,5 @@
 package sql
 
-import "github.com/google/uuid"
-
 type Where struct {
 	Query string
 	Args  []interface{}
@@ -15,6 +13,11 @@ type FindAllWhere struct {
 type IncludeTables struct {
 	Query string
 	Args  []interface{}
+}
+
+type ExistsOptions struct {
+	Where      *[]Where
+	IsUnscoped bool
 }
 
 type CountOptions struct {
@@ -34,7 +37,6 @@ type FindAllOptions struct {
 	Order         *[]string
 	Limit         *int
 	Offset        *int
-	AfterID       *uuid.UUID
 	IncludeTables *[]IncludeTables
 	IsUnscoped    bool
 }

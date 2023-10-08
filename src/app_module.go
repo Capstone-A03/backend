@@ -4,13 +4,26 @@ import (
 	"strconv"
 	"time"
 
+	"capstonea03/be/src/libs/db/mongo"
 	"capstonea03/be/src/libs/db/sql"
 	"capstonea03/be/src/libs/db/sql/pg"
 	"capstonea03/be/src/libs/env"
 	"capstonea03/be/src/libs/hash/argon2"
 	"capstonea03/be/src/libs/jwx/jwt"
+	"capstonea03/be/src/libs/localstorage"
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
+	"capstonea03/be/src/modules/dump"
+	logcollection "capstonea03/be/src/modules/log_collection"
+	logdump "capstonea03/be/src/modules/log_dump"
+	logreport "capstonea03/be/src/modules/log_report"
+	logroute "capstonea03/be/src/modules/log_route"
+	mapsector "capstonea03/be/src/modules/map_sector"
+	"capstonea03/be/src/modules/mcu"
+	"capstonea03/be/src/modules/media"
+	"capstonea03/be/src/modules/public"
+	"capstonea03/be/src/modules/route"
+	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,11 +44,11 @@ func (m *module) load() {
 	}))
 
 	// MongoDB database
-	// mongoDBClient := mongo.NewClient(&mongo.Config{
-	// 	Address:  env.Get(env.MONGO_ADDRESS),
-	// 	User:     env.Get(env.MONGO_INITDB_ROOT_USERNAME),
-	// 	Password: env.Get(env.MONGO_INITDB_ROOT_PASSWORD),
-	// })
+	mongoDBClient := mongo.NewClient(&mongo.Config{
+		Address:  env.Get(env.MONGO_ADDRESS),
+		User:     env.Get(env.MONGO_INITDB_ROOT_USERNAME),
+		Password: env.Get(env.MONGO_INITDB_ROOT_PASSWORD),
+	})
 
 	// JWT
 	jwt.Init(&jwt.Config{
@@ -87,6 +100,11 @@ func (m *module) load() {
 		}(),
 	})
 
+	// LocalStorage
+	localstorage.New(&localstorage.Config{
+		RootDirectory: env.Get(env.APP_PUBLIC_DIRECTORY),
+	})
+
 	m.controller()
 
 	user.Load(&user.Module{
@@ -96,5 +114,58 @@ func (m *module) load() {
 
 	auth.Load(&auth.Module{
 		App: m.app,
+	})
+
+	mcu.Load(&mcu.Module{
+		App: m.app,
+		DB:  pgDB,
+	})
+
+	truck.Load(&truck.Module{
+		App: m.app,
+		DB:  pgDB,
+	})
+
+	mapsector.Load(&mapsector.Module{
+		App: m.app,
+		DB:  pgDB,
+	})
+
+	dump.Load(&dump.Module{
+		App: m.app,
+		DB:  pgDB,
+	})
+
+	route.Load(&route.Module{
+		App: m.app,
+	})
+
+	media.Load(&media.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
+	})
+
+	public.Load(&public.Module{
+		App: m.app,
+	})
+
+	logreport.Load(&logreport.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
+	})
+
+	logroute.Load(&logroute.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
+	})
+
+	logcollection.Load(&logcollection.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
+	})
+
+	logdump.Load(&logdump.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
 	})
 }

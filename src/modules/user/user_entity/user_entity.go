@@ -7,14 +7,15 @@ import (
 	applogger "capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/libs/validator"
 	u "capstonea03/be/src/modules/user/user_constant"
+	"reflect"
 )
 
 type UserModel struct {
 	sql.Model
-	Name     *string `gorm:"not null" json:"name,omitempty"`
-	Username *string `gorm:"uniqueIndex;not null" json:"username,omitempty"`
-	Password *string `gorm:"not null" json:"-"`
-	Role     *u.Role `gorm:"not null" json:"role,omitempty" validate:"role"`
+	Name     *string `gorm:"column:name;not null" json:"name,omitempty"`
+	Username *string `gorm:"column:username;uniqueIndex;not null" json:"username,omitempty"`
+	Password *string `gorm:"column:password;not null" json:"-"`
+	Role     *u.Role `gorm:"column:role;not null" json:"role,omitempty" validate:"role"`
 }
 
 func (UserModel) TableName() string {
@@ -34,7 +35,7 @@ func InitRepository(db *sql.DB) {
 	userRepo = sql.NewService[UserModel](db)
 }
 
-func UserRepository() *userDB {
+func Repository() *userDB {
 	if userRepo == nil {
 		logger.Panic("userRepo is nil")
 	}
@@ -45,7 +46,7 @@ func UserRepository() *userDB {
 func CreateInitialUser() {
 	role := u.Role(env.Get(env.INITIAL_USER_ROLE, env.Option{MustExist: true}))
 
-	count, err := UserRepository().Count(&sql.CountOptions{
+	count, err := Repository().Count(&sql.CountOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "role = ?",
@@ -67,7 +68,7 @@ func CreateInitialUser() {
 	if err != nil {
 		logger.Panic(err)
 	}
-	if _, err := UserRepository().Create(&UserModel{
+	if _, err := Repository().Create(&UserModel{
 		Name:     &name,
 		Username: &username,
 		Password: encodedHash,
@@ -79,8 +80,10 @@ func CreateInitialUser() {
 
 func RegisterRoleValidation() {
 	if err := validator.RegisterValidation("role", func(fl validator.FieldLevel) bool {
-		if fl.Field().IsNil() {
-			return true
+		if fl.Field().Kind() == reflect.Pointer {
+			if fl.Field().IsNil() {
+				return true
+			}
 		}
 		if fl.Field().String() == "ADMIN" || fl.Field().String() == "JANITOR" {
 			return true

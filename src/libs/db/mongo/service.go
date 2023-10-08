@@ -7,7 +7,6 @@ import (
 	"capstonea03/be/src/libs/validator"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,7 +17,7 @@ type ModelI interface {
 }
 
 type Service[T ModelI] struct {
-	Client *Client
+	client *Client
 }
 
 type Options struct {
@@ -35,17 +34,10 @@ func NewService[T ModelI](client *Client, moptions ...*Options) *Service[T] {
 
 	if len(moptions) > 0 {
 		indexModels := func() []mongo.IndexModel {
-			model := make([]mongo.IndexModel, 0)
-
-			if moptions[0].Expiration > 0 {
-				model = append(model, mongo.IndexModel{
-					Keys:    bson.M{"updated_at": 1},
-					Options: options.Index().SetExpireAfterSeconds(int32(moptions[0].Expiration / time.Second)),
-				})
-			}
+			model := make([]mongo.IndexModel, 0, len(moptions[0].UniqueFields)+1)
 
 			if len(moptions[0].UniqueFields) > 0 {
-				uniqueField := bson.D{}
+				uniqueField := make(bson.D, 0, len(moptions[0].UniqueFields))
 				for _, field := range moptions[0].UniqueFields {
 					uniqueField = append(uniqueField, bson.E{Key: field, Value: 1})
 				}
@@ -55,19 +47,26 @@ func NewService[T ModelI](client *Client, moptions ...*Options) *Service[T] {
 				})
 			}
 
+			if moptions[0].Expiration > 0 {
+				model = append(model, mongo.IndexModel{
+					Keys:    bson.M{"updated_at": 1},
+					Options: options.Index().SetExpireAfterSeconds(int32(moptions[0].Expiration / time.Second)),
+				})
+			}
+
 			return model
 		}()
 
 		client.Database((*model).DatabaseName()).Collection((*model).CollectionName()).Indexes().CreateMany(context.TODO(), indexModels)
 	}
 
-	return &Service[T]{Client: client}
+	return &Service[T]{client: client}
 }
 
 func (s *Service[T]) Count(countOptions *CountOptions) (*int64, error) {
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
 	count, err := coll.CountDocuments(context.TODO(), countOptions.Where)
 	if err != nil {
@@ -83,16 +82,19 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 
 	docStruct := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	docMap := make(map[string]interface{}, 0)
-	if err := coll.FindOne(context.TODO(), findOptions.Where).Decode(&docMap); err != nil {
+	where := bson.D{}
+	if findOptions != nil && *findOptions.Where != nil {
+		for i := range *findOptions.Where {
+			where = append(where, (*findOptions.Where)[i]...)
+		}
+	}
+
+	if err := coll.FindOne(context.TODO(), where).Decode(docStruct); err != nil {
 		if !IsErrNoDocuments(err) {
 			logger.Error(err)
 		}
-		return nil, err
-	}
-	if err := transformInterfaceToStruct(&docMap, &docStruct); err != nil {
 		return nil, err
 	}
 
@@ -102,9 +104,9 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, error) {
 	model := new(T)
 
-	docStruct := []*T{}
+	docStruct := &[]*T{}
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 	optsFind := options.Find()
 
 	if findOptions.Limit != nil && *findOptions.Limit > 0 {
@@ -117,11 +119,11 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 		optsFind = optsFind.SetLimit(FindAllDefaultLimit)
 	}
 
-	where := []Where{}
+	where := bson.D{}
 	if findOptions.Where != nil {
 		for i := range *findOptions.Where {
 			if (*findOptions.Where)[i].IncludeInCount {
-				where = append(where, (*findOptions.Where)[i].Where)
+				where = append(where, (*findOptions.Where)[i].Where...)
 			}
 		}
 	}
@@ -141,7 +143,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	if findOptions.Where != nil {
 		for i := range *findOptions.Where {
 			if !(*findOptions.Where)[i].IncludeInCount {
-				where = append(where, (*findOptions.Where)[i].Where)
+				where = append(where, (*findOptions.Where)[i].Where...)
 			}
 		}
 	}
@@ -149,9 +151,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	if findOptions.Order != nil {
 		order := bson.D{}
 		for i := range *findOptions.Order {
-			order = append(order, bson.E{
-				Key: (*findOptions.Order)[i].Key, Value: (*findOptions.Order)[i].Value,
-			})
+			order = append(order, (*findOptions.Order)[i]...)
 		}
 		optsFind = optsFind.SetSort(&order)
 	}
@@ -162,29 +162,19 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 		return nil, nil, err
 	}
 
-	docMapList := []map[string]interface{}{}
-	for cursor.Next(context.TODO()) {
-		docMap := make(map[string]interface{}, 0)
-		if err := cursor.Decode(&docMap); err != nil {
-			logger.Error(err)
-			return nil, nil, err
-		}
-		docMapList = append(docMapList, docMap)
-	}
-	if len(docMapList) > 0 {
-		if err := transformInterfaceToStruct(&docMapList, &docStruct); err != nil {
-			return nil, nil, err
-		}
+	if err := cursor.All(context.TODO(), docStruct); err != nil {
+		logger.Error(err)
+		return nil, nil, err
 	}
 
-	return &docStruct, &Pagination{
+	return docStruct, &Pagination{
 		Limit: int(*optsFind.Limit),
-		Count: len(docStruct),
+		Count: len(*docStruct),
 		Total: int(total),
 	}, nil
 }
 
-func (s *Service[T]) Create(data *T) (*primitive.ObjectID, error) {
+func (s *Service[T]) Create(data *T) (*ObjectID, error) {
 	if err := validator.Struct(data); err != nil {
 		logger.Error(err)
 		return nil, err
@@ -192,20 +182,17 @@ func (s *Service[T]) Create(data *T) (*primitive.ObjectID, error) {
 
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	docMap := make(map[string]interface{}, 0)
-	if err := transformStructToMap(data, &docMap); err != nil {
-		return nil, err
-	}
+	appendTimestamp(data, true)
 
-	result, err := coll.InsertOne(context.TODO(), docMap)
+	result, err := coll.InsertOne(context.TODO(), data)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
 	}
 
-	id := result.InsertedID.(primitive.ObjectID)
+	id := result.InsertedID.(ObjectID)
 
 	return &id, nil
 }
@@ -218,19 +205,24 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	docMap := make(map[string]interface{}, 0)
-	if err := transformStructToMap(data, &docMap); err != nil {
-		return err
+	appendTimestamp(data)
+
+	where := bson.D{}
+	if updateOptions.Where != nil {
+		for i := range *updateOptions.Where {
+			where = append(where, (*updateOptions.Where)[i]...)
+		}
 	}
 
-	result, err := coll.UpdateOne(context.TODO(), updateOptions.Where, bson.D{{Key: "$set", Value: docMap}})
+	result, err := coll.UpdateOne(context.TODO(), where, bson.D{{Key: "$set", Value: data}})
 	if err != nil {
 		logger.Error(err)
 		return err
 	}
 	if result == nil || result.ModifiedCount == 0 {
+		logger.Error("failed to update the document")
 		return mongo.ErrNoDocuments
 	}
 
@@ -240,9 +232,16 @@ func (s *Service[T]) Update(data *T, updateOptions *UpdateOptions) error {
 func (s *Service[T]) Destroy(destroyOptions *DestroyOptions) error {
 	model := new(T)
 
-	coll := s.Client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 
-	result, err := coll.DeleteOne(context.TODO(), destroyOptions.Where)
+	where := bson.D{}
+	if destroyOptions.Where != nil {
+		for i := range *destroyOptions.Where {
+			where = append(where, (*destroyOptions.Where)[i]...)
+		}
+	}
+
+	result, err := coll.DeleteOne(context.TODO(), where)
 	if err != nil {
 		logger.Error(err)
 		return err

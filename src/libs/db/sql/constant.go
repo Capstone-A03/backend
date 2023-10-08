@@ -2,5 +2,5 @@ package sql
 
 const (
 	FindAllDefaultLimit = 30
-	FindAllMaximumLimit = 100
+	FindAllMaximumLimit = 1001
 )

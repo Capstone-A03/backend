@@ -35,21 +35,28 @@ func main() {
 		JSONDecoder: sonic.Unmarshal,
 		ReadTimeout: 30 * time.Second,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			e, ok := err.(contracts.Error)
-			if ok {
-				return c.Status(e.Code).JSON(&contracts.Response{
-					Error: &e,
+			switch err := err.(type) {
+			case contracts.Error:
+				return c.Status(err.Code).JSON(&contracts.Response{
+					Error: &err,
+				})
+			case *fiber.Error:
+				return c.Status(err.Code).JSON(&contracts.Response{
+					Error: &contracts.Error{
+						Code:    err.Code,
+						Status:  err.Error(),
+						Message: err.Message,
+					},
+				})
+			default:
+				return c.Status(fiber.StatusInternalServerError).JSON(&contracts.Response{
+					Error: &contracts.Error{
+						Code:    fiber.ErrInternalServerError.Code,
+						Status:  fiber.ErrInternalServerError.Error(),
+						Message: err.Error(),
+					},
 				})
 			}
-
-			fibererror := err.(*fiber.Error)
-			return c.Status(fibererror.Code).JSON(&contracts.Response{
-				Error: &contracts.Error{
-					Code:    fibererror.Code,
-					Status:  fibererror.Error(),
-					Message: fibererror.Message,
-				},
-			})
 		},
 	})
 
