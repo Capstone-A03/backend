@@ -12,9 +12,10 @@ import (
 type Env string
 
 const (
-	APP_NAME    Env = "APP_NAME"
-	APP_MODE    Env = "APP_MODE"
-	APP_ADDRESS Env = "APP_ADDRESS"
+	APP_NAME             Env = "APP_NAME"
+	APP_MODE             Env = "APP_MODE"
+	APP_ADDRESS          Env = "APP_ADDRESS"
+	APP_PUBLIC_DIRECTORY Env = "APP_PUBLIC_DIRECTORY"
 
 	WEB_ADDRESS Env = "WEB_ADDRESS"
 

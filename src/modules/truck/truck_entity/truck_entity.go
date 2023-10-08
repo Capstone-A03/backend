@@ -33,7 +33,7 @@ func InitRepository(db *sql.DB) {
 	truckRepo = sql.NewService[TruckModel](db)
 }
 
-func TruckRepository() *truckDB {
+func Repository() *truckDB {
 	if truckRepo == nil {
 		logger.Panic("truckRepo is nil")
 	}

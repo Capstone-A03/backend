@@ -36,7 +36,7 @@ func InitRepository(client *mongo.Client) {
 	logRouteRepo = mongo.NewService[LogRouteModel](client)
 }
 
-func LogRouteRepository() *logRouteDB {
+func Repository() *logRouteDB {
 	if logRouteRepo == nil {
 		logger.Panic("logRouteRepo is nil")
 	}

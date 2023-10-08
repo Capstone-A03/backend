@@ -41,7 +41,7 @@ func (m *Module) getLogCollectionListService(pagination *paginationOption) (*[]*
 		limit = *pagination.limit
 	}
 
-	data, page, err := lce.LogCollectionRepository().FindAll(&mongo.FindAllOptions{
+	data, page, err := lce.Repository().FindAll(&mongo.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
@@ -58,7 +58,7 @@ func (m *Module) getLogCollectionListService(pagination *paginationOption) (*[]*
 }
 
 func (*Module) getLogCollectionService(id *mongo.ObjectID) (*lce.LogCollectionModel, error) {
-	return lce.LogCollectionRepository().FindOne(&mongo.FindOneOptions{
+	return lce.Repository().FindOne(&mongo.FindOneOptions{
 		Where: &[]mongo.Where{{
 			{
 				Key:   "_id",
@@ -69,7 +69,7 @@ func (*Module) getLogCollectionService(id *mongo.ObjectID) (*lce.LogCollectionMo
 }
 
 func (m *Module) addLogCollectionService(data *lce.LogCollectionModel) (*lce.LogCollectionModel, error) {
-	id, err := lce.LogCollectionRepository().Create(data)
+	id, err := lce.Repository().Create(data)
 	if err != nil {
 		return nil, err
 	}

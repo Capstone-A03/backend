@@ -68,6 +68,13 @@ func (m *Module) addLogReport(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
+	if _, err := m.getMediaService(req.MediaID); err != nil {
+		if mongo.IsErrNoDocuments(err) {
+			return contracts.NewError(fiber.ErrNotFound, "media does not exist")
+		}
+		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+	}
+
 	logReportData, err := m.addLogReportService(&lre.LogReportModel{
 		ReporterName: req.ReporterName,
 		MediaID:      req.MediaID,
@@ -94,6 +101,15 @@ func (m *Module) updateLogReport(c *fiber.Ctx) error {
 	req := new(updateLogReportReq)
 	if err := parser.ParseReqBody(c, req); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
+	}
+
+	if req.MediaID != nil {
+		if _, err := m.getMediaService(req.MediaID); err != nil {
+			if mongo.IsErrNoDocuments(err) {
+				return contracts.NewError(fiber.ErrNotFound, "media does not exist")
+			}
+			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+		}
 	}
 
 	logReportData, err := m.updateLogReportService(param.ID, &lre.LogReportModel{

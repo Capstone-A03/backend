@@ -41,7 +41,7 @@ func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.Truck
 		limit = *pagination.limit
 	}
 
-	data, page, err := te.TruckRepository().FindAll(&sql.FindAllOptions{
+	data, page, err := te.Repository().FindAll(&sql.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]string{"created_at desc"},
@@ -58,7 +58,7 @@ func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.Truck
 }
 
 func (*Module) getTruckService(id *uuid.UUID) (*te.TruckModel, error) {
-	return te.TruckRepository().FindOne(&sql.FindOneOptions{
+	return te.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -69,7 +69,7 @@ func (*Module) getTruckService(id *uuid.UUID) (*te.TruckModel, error) {
 }
 
 func (*Module) getMapSectorService(mapSectorID *uuid.UUID) (*mse.MapSectorModel, error) {
-	return mse.MapSectorRepository().FindOne(&sql.FindOneOptions{
+	return mse.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -80,11 +80,11 @@ func (*Module) getMapSectorService(mapSectorID *uuid.UUID) (*mse.MapSectorModel,
 }
 
 func (*Module) addTruckService(data *te.TruckModel) (*te.TruckModel, error) {
-	return te.TruckRepository().Create(data)
+	return te.Repository().Create(data)
 }
 
 func (m *Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.TruckModel, error) {
-	if _, err := te.TruckRepository().Update(data, &sql.UpdateOptions{
+	if _, err := te.Repository().Update(data, &sql.UpdateOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -99,7 +99,7 @@ func (m *Module) updateTruckService(id *uuid.UUID, data *te.TruckModel) (*te.Tru
 }
 
 func (*Module) deleteTruckService(id *uuid.UUID) error {
-	return te.TruckRepository().Destroy(&sql.DestroyOptions{
+	return te.Repository().Destroy(&sql.DestroyOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",

@@ -93,7 +93,7 @@ func InitRepository(db *sql.DB) {
 	dumpRepo = sql.NewService[DumpModel](db)
 }
 
-func DumpRepository() *dumpDB {
+func Repository() *dumpDB {
 	if dumpRepo == nil {
 		logger.Panic("dumpRepo is nil")
 	}

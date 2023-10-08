@@ -41,7 +41,7 @@ func (m *Module) getLogRouteListService(pagination *paginationOption) (*[]*lre.L
 		limit = *pagination.limit
 	}
 
-	data, page, err := lre.LogRouteRepository().FindAll(&mongo.FindAllOptions{
+	data, page, err := lre.Repository().FindAll(&mongo.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
@@ -58,7 +58,7 @@ func (m *Module) getLogRouteListService(pagination *paginationOption) (*[]*lre.L
 }
 
 func (*Module) getLogRouteService(id *mongo.ObjectID) (*lre.LogRouteModel, error) {
-	return lre.LogRouteRepository().FindOne(&mongo.FindOneOptions{
+	return lre.Repository().FindOne(&mongo.FindOneOptions{
 		Where: &[]mongo.Where{{
 			{
 				Key:   "_id",
@@ -69,7 +69,7 @@ func (*Module) getLogRouteService(id *mongo.ObjectID) (*lre.LogRouteModel, error
 }
 
 func (m *Module) addLogRouteService(data *lre.LogRouteModel) (*lre.LogRouteModel, error) {
-	id, err := lre.LogRouteRepository().Create(data)
+	id, err := lre.Repository().Create(data)
 	if err != nil {
 		return nil, err
 	}

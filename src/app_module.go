@@ -10,6 +10,7 @@ import (
 	"capstonea03/be/src/libs/env"
 	"capstonea03/be/src/libs/hash/argon2"
 	"capstonea03/be/src/libs/jwx/jwt"
+	"capstonea03/be/src/libs/localstorage"
 	"capstonea03/be/src/libs/logger"
 	"capstonea03/be/src/modules/auth"
 	"capstonea03/be/src/modules/dump"
@@ -19,6 +20,8 @@ import (
 	logroute "capstonea03/be/src/modules/log_route"
 	mapsector "capstonea03/be/src/modules/map_sector"
 	"capstonea03/be/src/modules/mcu"
+	"capstonea03/be/src/modules/media"
+	"capstonea03/be/src/modules/public"
 	"capstonea03/be/src/modules/route"
 	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
@@ -97,6 +100,11 @@ func (m *module) load() {
 		}(),
 	})
 
+	// LocalStorage
+	localstorage.New(&localstorage.Config{
+		RootDirectory: env.Get(env.APP_PUBLIC_DIRECTORY),
+	})
+
 	m.controller()
 
 	user.Load(&user.Module{
@@ -128,6 +136,19 @@ func (m *module) load() {
 		DB:  pgDB,
 	})
 
+	route.Load(&route.Module{
+		App: m.app,
+	})
+
+	media.Load(&media.Module{
+		App:      m.app,
+		DBClient: mongoDBClient,
+	})
+
+	public.Load(&public.Module{
+		App: m.app,
+	})
+
 	logreport.Load(&logreport.Module{
 		App:      m.app,
 		DBClient: mongoDBClient,
@@ -146,9 +167,5 @@ func (m *module) load() {
 	logdump.Load(&logdump.Module{
 		App:      m.app,
 		DBClient: mongoDBClient,
-	})
-
-	route.Load(&route.Module{
-		App: m.app,
 	})
 }

@@ -35,7 +35,7 @@ func InitRepository(db *sql.DB) {
 	userRepo = sql.NewService[UserModel](db)
 }
 
-func UserRepository() *userDB {
+func Repository() *userDB {
 	if userRepo == nil {
 		logger.Panic("userRepo is nil")
 	}
@@ -46,7 +46,7 @@ func UserRepository() *userDB {
 func CreateInitialUser() {
 	role := u.Role(env.Get(env.INITIAL_USER_ROLE, env.Option{MustExist: true}))
 
-	count, err := UserRepository().Count(&sql.CountOptions{
+	count, err := Repository().Count(&sql.CountOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "role = ?",
@@ -68,7 +68,7 @@ func CreateInitialUser() {
 	if err != nil {
 		logger.Panic(err)
 	}
-	if _, err := UserRepository().Create(&UserModel{
+	if _, err := Repository().Create(&UserModel{
 		Name:     &name,
 		Username: &username,
 		Password: encodedHash,

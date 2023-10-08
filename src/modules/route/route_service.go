@@ -10,7 +10,7 @@ import (
 )
 
 func (*Module) getDumpListByMapSectorIDService(mapSectorID *uuid.UUID) (*[]*de.DumpModel, *sql.Pagination, error) {
-	return de.DumpRepository().FindAll(&sql.FindAllOptions{
+	return de.Repository().FindAll(&sql.FindAllOptions{
 		Where: &[]sql.FindAllWhere{
 			{
 				Where: sql.Where{
@@ -25,7 +25,7 @@ func (*Module) getDumpListByMapSectorIDService(mapSectorID *uuid.UUID) (*[]*de.D
 }
 
 func (*Module) getTruckListByMapSectorIDService(mapSectorID *uuid.UUID) (*[]*te.TruckModel, *sql.Pagination, error) {
-	return te.TruckRepository().FindAll(&sql.FindAllOptions{
+	return te.Repository().FindAll(&sql.FindAllOptions{
 		Where: &[]sql.FindAllWhere{
 			{
 				Where: sql.Where{

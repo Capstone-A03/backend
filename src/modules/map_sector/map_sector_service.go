@@ -40,7 +40,7 @@ func (m *Module) getMapSectorListService(pagination *paginationOption) (*[]*mse.
 		limit = *pagination.limit
 	}
 
-	data, page, err := mse.MapSectorRepository().FindAll(&sql.FindAllOptions{
+	data, page, err := mse.Repository().FindAll(&sql.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]string{"created_at desc"},
@@ -57,7 +57,7 @@ func (m *Module) getMapSectorListService(pagination *paginationOption) (*[]*mse.
 }
 
 func (*Module) getMapSectorService(id *uuid.UUID) (*mse.MapSectorModel, error) {
-	return mse.MapSectorRepository().FindOne(&sql.FindOneOptions{
+	return mse.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -68,11 +68,11 @@ func (*Module) getMapSectorService(id *uuid.UUID) (*mse.MapSectorModel, error) {
 }
 
 func (*Module) addMapSectorService(data *mse.MapSectorModel) (*mse.MapSectorModel, error) {
-	return mse.MapSectorRepository().Create(data)
+	return mse.Repository().Create(data)
 }
 
 func (m *Module) updateMapSectorService(id *uuid.UUID, data *mse.MapSectorModel) (*mse.MapSectorModel, error) {
-	if _, err := mse.MapSectorRepository().Update(data, &sql.UpdateOptions{
+	if _, err := mse.Repository().Update(data, &sql.UpdateOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -87,7 +87,7 @@ func (m *Module) updateMapSectorService(id *uuid.UUID, data *mse.MapSectorModel)
 }
 
 func (*Module) deleteMapSectorService(id *uuid.UUID) error {
-	return mse.MapSectorRepository().Destroy(&sql.DestroyOptions{
+	return mse.Repository().Destroy(&sql.DestroyOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",

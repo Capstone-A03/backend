@@ -3,6 +3,7 @@ package logreport
 import (
 	"capstonea03/be/src/libs/db/mongo"
 	lre "capstonea03/be/src/modules/log_report/log_report_entity"
+	me "capstonea03/be/src/modules/media/media_entity"
 )
 
 type paginationOption struct {
@@ -41,7 +42,7 @@ func (m *Module) getLogReportListService(pagination *paginationOption) (*[]*lre.
 		limit = *pagination.limit
 	}
 
-	data, page, err := lre.LogReportRepository().FindAll(&mongo.FindAllOptions{
+	data, page, err := lre.Repository().FindAll(&mongo.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
@@ -58,7 +59,7 @@ func (m *Module) getLogReportListService(pagination *paginationOption) (*[]*lre.
 }
 
 func (*Module) getLogReportService(id *mongo.ObjectID) (*lre.LogReportModel, error) {
-	return lre.LogReportRepository().FindOne(&mongo.FindOneOptions{
+	return lre.Repository().FindOne(&mongo.FindOneOptions{
 		Where: &[]mongo.Where{{
 			{
 				Key:   "_id",
@@ -68,8 +69,19 @@ func (*Module) getLogReportService(id *mongo.ObjectID) (*lre.LogReportModel, err
 	})
 }
 
+func (*Module) getMediaService(mediaID *mongo.ObjectID) (*me.MediaModel, error) {
+	return me.Repository().FindOne(&mongo.FindOneOptions{
+		Where: &[]mongo.Where{{
+			{
+				Key:   "_id",
+				Value: mediaID,
+			},
+		}},
+	})
+}
+
 func (m *Module) addLogReportService(data *lre.LogReportModel) (*lre.LogReportModel, error) {
-	id, err := lre.LogReportRepository().Create(data)
+	id, err := lre.Repository().Create(data)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +90,7 @@ func (m *Module) addLogReportService(data *lre.LogReportModel) (*lre.LogReportMo
 }
 
 func (m *Module) updateLogReportService(id *mongo.ObjectID, data *lre.LogReportModel) (*lre.LogReportModel, error) {
-	if err := lre.LogReportRepository().Update(data, &mongo.UpdateOptions{
+	if err := lre.Repository().Update(data, &mongo.UpdateOptions{
 		Where: &[]mongo.Where{{
 			{
 				Key:   "_id",

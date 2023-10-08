@@ -3,14 +3,16 @@ package route
 import (
 	"capstonea03/be/src/contracts"
 	"capstonea03/be/src/libs/parser"
+	am "capstonea03/be/src/modules/auth/auth_middleware"
 	de "capstonea03/be/src/modules/dump/dump_entity"
+	uc "capstonea03/be/src/modules/user/user_constant"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/route", m.getRoute)
+	m.App.Get("/api/v1/route", am.AuthGuard(uc.ROLE_ADMIN), m.getRoute)
 }
 
 func (m *Module) getRoute(c *fiber.Ctx) error {

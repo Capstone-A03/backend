@@ -41,7 +41,7 @@ func (m *Module) getLogDumpListService(pagination *paginationOption) (*[]*lde.Lo
 		limit = *pagination.limit
 	}
 
-	data, page, err := lde.LogDumpRepository().FindAll(&mongo.FindAllOptions{
+	data, page, err := lde.Repository().FindAll(&mongo.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
@@ -58,7 +58,7 @@ func (m *Module) getLogDumpListService(pagination *paginationOption) (*[]*lde.Lo
 }
 
 func (*Module) getLogDumpService(id *mongo.ObjectID) (*lde.LogDumpModel, error) {
-	return lde.LogDumpRepository().FindOne(&mongo.FindOneOptions{
+	return lde.Repository().FindOne(&mongo.FindOneOptions{
 		Where: &[]mongo.Where{{
 			{
 				Key:   "_id",
@@ -69,7 +69,7 @@ func (*Module) getLogDumpService(id *mongo.ObjectID) (*lde.LogDumpModel, error) 
 }
 
 func (m *Module) addLogDumpService(data *lde.LogDumpModel) (*lde.LogDumpModel, error) {
-	id, err := lde.LogDumpRepository().Create(data)
+	id, err := lde.Repository().Create(data)
 	if err != nil {
 		return nil, err
 	}

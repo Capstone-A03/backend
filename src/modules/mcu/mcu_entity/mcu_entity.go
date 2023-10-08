@@ -44,7 +44,7 @@ func InitRepository(db *sql.DB) {
 	mcuRepo = sql.NewService[McuModel](db)
 }
 
-func McuRepository() *mcuDB {
+func Repository() *mcuDB {
 	if mcuRepo == nil {
 		logger.Panic("mcuRepo is nil")
 	}

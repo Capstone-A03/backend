@@ -14,11 +14,11 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/final-dumps", am.AuthGuard(uc.ROLE_ADMIN), m.getDumpList)
-	m.App.Get("/api/v1/final-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getDump)
-	m.App.Post("/api/v1/final-dump", am.AuthGuard(uc.ROLE_ADMIN), m.addDump)
-	m.App.Patch("/api/v1/final-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.updateDump)
-	m.App.Delete("/api/v1/final-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.deleteDump)
+	m.App.Get("/api/v1/dumps", am.AuthGuard(uc.ROLE_ADMIN), m.getDumpList)
+	m.App.Get("/api/v1/dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getDump)
+	m.App.Post("/api/v1/dump", am.AuthGuard(uc.ROLE_ADMIN), m.addDump)
+	m.App.Patch("/api/v1/dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.updateDump)
+	m.App.Delete("/api/v1/dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.deleteDump)
 }
 
 func (m *Module) getDumpList(c *fiber.Ctx) error {

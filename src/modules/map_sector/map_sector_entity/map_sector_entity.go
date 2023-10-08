@@ -45,7 +45,7 @@ func InitRepository(db *sql.DB) {
 	mapSectorRepo = sql.NewService[MapSectorModel](db)
 }
 
-func MapSectorRepository() *mapSectorDB {
+func Repository() *mapSectorDB {
 	if mapSectorRepo == nil {
 		logger.Panic("mapSectorRepo is nil")
 	}

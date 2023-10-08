@@ -47,7 +47,7 @@ func (*Module) existsDumpService(search *searchOption) (*bool, error) {
 		}
 	}
 
-	return de.DumpRepository().Exists(&sql.ExistsOptions{
+	return de.Repository().Exists(&sql.ExistsOptions{
 		Where: &where,
 	})
 }
@@ -64,7 +64,7 @@ func (*Module) countMapSectorService(search *searchMapSectorOption) (*int64, err
 		}
 	}
 
-	return mse.MapSectorRepository().Count(&sql.CountOptions{
+	return mse.Repository().Count(&sql.CountOptions{
 		Where: &where,
 	})
 }
@@ -115,7 +115,7 @@ func (m *Module) getDumpListService(search *searchOption, pagination *pagination
 		}
 	}
 
-	data, page, err := de.DumpRepository().FindAll(&sql.FindAllOptions{
+	data, page, err := de.Repository().FindAll(&sql.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]string{"created_at desc"},
@@ -132,7 +132,7 @@ func (m *Module) getDumpListService(search *searchOption, pagination *pagination
 }
 
 func (*Module) getDumpService(id *uuid.UUID) (*de.DumpModel, error) {
-	return de.DumpRepository().FindOne(&sql.FindOneOptions{
+	return de.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -143,11 +143,11 @@ func (*Module) getDumpService(id *uuid.UUID) (*de.DumpModel, error) {
 }
 
 func (*Module) addDumpService(data *de.DumpModel) (*de.DumpModel, error) {
-	return de.DumpRepository().Create(data)
+	return de.Repository().Create(data)
 }
 
 func (m *Module) updateDumpService(id *uuid.UUID, data *de.DumpModel) (*de.DumpModel, error) {
-	if _, err := de.DumpRepository().Update(data, &sql.UpdateOptions{
+	if _, err := de.Repository().Update(data, &sql.UpdateOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -162,7 +162,7 @@ func (m *Module) updateDumpService(id *uuid.UUID, data *de.DumpModel) (*de.DumpM
 }
 
 func (*Module) deleteDumpService(id *uuid.UUID) error {
-	return de.DumpRepository().Destroy(&sql.DestroyOptions{
+	return de.Repository().Destroy(&sql.DestroyOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",

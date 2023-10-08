@@ -7,8 +7,6 @@ services:
       - capstonea03-network
     env_file:
       - .env.capstonea03
-    environment:
-      TZ: Asia/Jakarta
     volumes:
       - ./volume/capstonea03-pg:/var/lib/postgresql/data:Z
   
@@ -20,14 +18,12 @@ services:
       - capstonea03-network
     env_file:
       - .env.capstonea03
-    environment:
-      TZ: Asia/Jakarta
     volumes:
       - ./volume/capstonea03-mongo:/data/db:Z
 
   capstonea03-be:
     container_name: capstonea03-be
-    image: capstonea03:distroless-static-debian11
+    image: capstonea03:distroless-static-debian12
     restart: unless-stopped
     networks:
       - capstonea03-network
@@ -35,8 +31,8 @@ services:
       - "8080:8080"
     env_file:
       - .env.capstonea03
-    environment:
-      TZ: Asia/Jakarta
+    volumes:
+      - ./volume/capstonea03-be:/public:Z
     depends_on:
       - capstonea03-pg
 

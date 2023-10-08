@@ -36,7 +36,7 @@ func InitRepository(client *mongo.Client) {
 	logDumpRepo = mongo.NewService[LogDumpModel](client)
 }
 
-func LogDumpRepository() *logDumpDB {
+func Repository() *logDumpDB {
 	if logDumpRepo == nil {
 		logger.Panic("logDumpRepo is nil")
 	}

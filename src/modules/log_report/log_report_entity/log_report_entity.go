@@ -8,12 +8,12 @@ import (
 
 type LogReportModel struct {
 	mongo.Model  `bson:"inline"`
-	ReporterName *string     `bson:"reporter_name,omitempty" json:"reporterName,omitempty"`
-	MediaID      *string     `bson:"media_id,omitempty" json:"mediaId,omitempty"`
-	Coordinate   *Coordinate `bson:"coordinate,omitempty" json:"coordinate,omitempty"`
-	Type         *string     `bson:"type,omitempty" json:"type,omitempty"`
-	Description  *string     `bson:"description,omitempty" json:"description,omitempty"`
-	Status       *string     `bson:"status,omitempty" json:"status,omitempty"`
+	ReporterName *string         `bson:"reporter_name,omitempty" json:"reporterName,omitempty"`
+	MediaID      *mongo.ObjectID `bson:"media_id,omitempty" json:"mediaId,omitempty"`
+	Coordinate   *Coordinate     `bson:"coordinate,omitempty" json:"coordinate,omitempty"`
+	Type         *string         `bson:"type,omitempty" json:"type,omitempty"`
+	Description  *string         `bson:"description,omitempty" json:"description,omitempty"`
+	Status       *string         `bson:"status,omitempty" json:"status,omitempty"`
 }
 
 type Coordinate struct {
@@ -42,7 +42,7 @@ func InitRepository(client *mongo.Client) {
 	logReportRepo = mongo.NewService[LogReportModel](client)
 }
 
-func LogReportRepository() *logReportDB {
+func Repository() *logReportDB {
 	if logReportRepo == nil {
 		logger.Panic("logReportRepo is nil")
 	}

@@ -40,7 +40,7 @@ func (m *Module) getMcuListService(pagination *paginationOption) (*[]*mcue.McuMo
 		limit = *pagination.limit
 	}
 
-	data, page, err := mcue.McuRepository().FindAll(&sql.FindAllOptions{
+	data, page, err := mcue.Repository().FindAll(&sql.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]string{"created_at desc"},
@@ -57,7 +57,7 @@ func (m *Module) getMcuListService(pagination *paginationOption) (*[]*mcue.McuMo
 }
 
 func (*Module) getMcuService(id *uuid.UUID) (*mcue.McuModel, error) {
-	return mcue.McuRepository().FindOne(&sql.FindOneOptions{
+	return mcue.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -68,11 +68,11 @@ func (*Module) getMcuService(id *uuid.UUID) (*mcue.McuModel, error) {
 }
 
 func (*Module) addMcuService(data *mcue.McuModel) (*mcue.McuModel, error) {
-	return mcue.McuRepository().Create(data)
+	return mcue.Repository().Create(data)
 }
 
 func (m *Module) updateMcuService(id *uuid.UUID, data *mcue.McuModel) (*mcue.McuModel, error) {
-	if _, err := mcue.McuRepository().Update(data, &sql.UpdateOptions{
+	if _, err := mcue.Repository().Update(data, &sql.UpdateOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -87,7 +87,7 @@ func (m *Module) updateMcuService(id *uuid.UUID, data *mcue.McuModel) (*mcue.Mcu
 }
 
 func (*Module) deleteMcuService(id *uuid.UUID) error {
-	return mcue.McuRepository().Destroy(&sql.DestroyOptions{
+	return mcue.Repository().Destroy(&sql.DestroyOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",

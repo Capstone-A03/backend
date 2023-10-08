@@ -3,7 +3,7 @@ package dump
 import "github.com/google/uuid"
 
 type getDumpListReqQuery struct {
-	SearchByMapSectorID *uuid.UUID `query:"map_sector_id"`
+	SearchByMapSectorID *uuid.UUID `query:"mapSectorId"`
 	SearchByType        *string    `query:"type"`
 	LastID              *uuid.UUID `query:"lastId"`
 	Limit               *int       `query:"limit"`
@@ -18,7 +18,7 @@ type addDumpReq struct {
 	MapSectorID *uuid.UUID  `json:"mapSectorId" validate:"required"`
 	Coordinate  *coordinate `json:"coordinate" validate:"required"`
 	Type        *string     `json:"type" validate:"gt=0"`
-	Capacity    *float64    `json:"capacity" validate:"required"`
+	Capacity    *float64    `json:"capacity" validate:"gt=0"`
 	Condition   *string     `json:"condition" validate:"gt=0"`
 }
 
@@ -30,9 +30,9 @@ type updateDumpReq struct {
 	Name        *string     `json:"name" validate:"omitempty,gt=0"`
 	MapSectorID *uuid.UUID  `json:"mapSectorId"`
 	Coordinate  *coordinate `json:"coordinate"`
-	Type        *string     `json:"type"`
-	Capacity    *float64    `json:"capacity"`
-	Condition   *string     `json:"condition"`
+	Type        *string     `json:"type" validate:"omitempty,gt=0"`
+	Capacity    *float64    `json:"capacity" validate:"omitempty,gt=0"`
+	Condition   *string     `json:"condition" validate:"omitempty,gt=0"`
 }
 
 type deleteDumpReqParam struct {

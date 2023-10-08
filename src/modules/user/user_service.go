@@ -24,7 +24,7 @@ type paginationQuery struct {
 }
 
 func (*Module) countUserWithAdminRoleService() (*int64, error) {
-	return ue.UserRepository().Count(&sql.CountOptions{
+	return ue.Repository().Count(&sql.CountOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "role = ?",
@@ -68,7 +68,7 @@ func (m *Module) getUserListService(pagination *paginationOption, search *search
 		limit = *pagination.limit
 	}
 
-	data, page, err := ue.UserRepository().FindAll(&sql.FindAllOptions{
+	data, page, err := ue.Repository().FindAll(&sql.FindAllOptions{
 		Where: &where,
 		Limit: &limit,
 		Order: &[]string{"created_at desc"},
@@ -85,7 +85,7 @@ func (m *Module) getUserListService(pagination *paginationOption, search *search
 }
 
 func (*Module) getUserService(id *uuid.UUID) (*ue.UserModel, error) {
-	return ue.UserRepository().FindOne(&sql.FindOneOptions{
+	return ue.Repository().FindOne(&sql.FindOneOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -96,7 +96,7 @@ func (*Module) getUserService(id *uuid.UUID) (*ue.UserModel, error) {
 }
 
 func (m *Module) updateUserService(id *uuid.UUID, data *ue.UserModel) (*ue.UserModel, error) {
-	if _, err := ue.UserRepository().Update(data, &sql.UpdateOptions{
+	if _, err := ue.Repository().Update(data, &sql.UpdateOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
@@ -111,7 +111,7 @@ func (m *Module) updateUserService(id *uuid.UUID, data *ue.UserModel) (*ue.UserM
 }
 
 func (*Module) deleteUserService(id *uuid.UUID) error {
-	return ue.UserRepository().Destroy(&sql.DestroyOptions{
+	return ue.Repository().Destroy(&sql.DestroyOptions{
 		Where: &[]sql.Where{
 			{
 				Query: "id = ?",
