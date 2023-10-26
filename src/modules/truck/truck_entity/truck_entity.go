@@ -9,11 +9,11 @@ import (
 
 type TruckModel struct {
 	sql.Model
-	MapSectorIDs    *[]*uuid.UUID `gorm:"column:map_sector_ids;type:uuid[];not null" json:"mapSectorIds,omitempty"`
-	LicensePlate    *string       `gorm:"column:license_plate;uniqueIndex;not null" json:"licensePlate,omitempty"`
+	MapSectorIDs    *[]*uuid.UUID `gorm:"column:map_sector_ids;type:uuid[]" json:"mapSectorIds,omitempty"`
+	LicensePlate    *string       `gorm:"column:license_plate;uniqueIndex" json:"licensePlate,omitempty"`
 	Type            *string       `gorm:"column:type;not null" json:"type,omitempty"`
 	Capacity        *float64      `gorm:"column:capacity;not null" json:"capacity,omitempty"`
-	FuelConsumption *float64      `gorm:"column:fuel_consumption;not null" json:"fuelConsumption,omitempty"`
+	FuelConsumption *float64      `gorm:"column:fuel_consumption" json:"fuelConsumption,omitempty"`
 }
 
 func (TruckModel) TableName() string {

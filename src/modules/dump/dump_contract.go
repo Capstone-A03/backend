@@ -15,11 +15,11 @@ type getDumpReqParam struct {
 
 type addDumpReq struct {
 	Name        *string     `json:"name" validate:"gt=0"`
-	MapSectorID *uuid.UUID  `json:"mapSectorId" validate:"required"`
+	MapSectorID *uuid.UUID  `json:"mapSectorId" validate:"omitempty"`
 	Coordinate  *coordinate `json:"coordinate" validate:"required"`
 	Type        *string     `json:"type" validate:"gt=0"`
 	Capacity    *float64    `json:"capacity" validate:"gt=0"`
-	Condition   *string     `json:"condition" validate:"gt=0"`
+	Condition   *string     `json:"condition" validate:"omitempty,gt=0"`
 }
 
 type updateDumpReqParam struct {
@@ -28,7 +28,7 @@ type updateDumpReqParam struct {
 
 type updateDumpReq struct {
 	Name        *string     `json:"name" validate:"omitempty,gt=0"`
-	MapSectorID *uuid.UUID  `json:"mapSectorId"`
+	MapSectorID *uuid.UUID  `json:"mapSectorId" validate:"omitempty"`
 	Coordinate  *coordinate `json:"coordinate"`
 	Type        *string     `json:"type" validate:"omitempty,gt=0"`
 	Capacity    *float64    `json:"capacity" validate:"omitempty,gt=0"`

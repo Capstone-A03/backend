@@ -10,7 +10,7 @@ import (
 
 type searchOption struct {
 	mapSectorID *uuid.UUID
-	dumpType    *de.DumpType
+	dumpType    *string
 }
 
 type searchMapSectorOption struct {

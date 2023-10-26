@@ -7,7 +7,6 @@ import (
 	am "capstonea03/be/src/modules/auth/auth_middleware"
 	de "capstonea03/be/src/modules/dump/dump_entity"
 	uc "capstonea03/be/src/modules/user/user_constant"
-	"capstonea03/be/src/utils"
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
@@ -29,7 +28,7 @@ func (m *Module) getDumpList(c *fiber.Ctx) error {
 
 	dumpListData, page, err := m.getDumpListService(&searchOption{
 		mapSectorID: query.SearchByMapSectorID,
-		dumpType:    (*de.DumpType)(query.SearchByType),
+		dumpType:    query.SearchByType,
 	}, &paginationOption{
 		lastID: query.LastID,
 		limit:  query.Limit,
@@ -73,34 +72,35 @@ func (m *Module) addDump(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	countMapSector, err := m.countMapSectorService(&searchMapSectorOption{
-		mapSectorID: req.MapSectorID,
-	})
-	if err != nil {
-		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
-	}
-	if *countMapSector == 0 {
-		return contracts.NewError(fiber.ErrBadRequest, "the map sector doesn't exist")
+	if req.MapSectorID != nil {
+		countMapSector, err := m.countMapSectorService(&searchMapSectorOption{
+			mapSectorID: req.MapSectorID,
+		})
+		if err != nil {
+			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+		}
+		if *countMapSector == 0 {
+			return contracts.NewError(fiber.ErrBadRequest, "the map sector doesn't exist")
+		}
 	}
 
-	dumpType, err := func() (*de.DumpType, error) {
+	if err := func() error {
 		switch *req.Type {
 		case string(de.TempDump):
-			return utils.AsRef(de.TempDump), nil
+			return nil
 		case string(de.FinalDump):
-			return utils.AsRef(de.FinalDump), nil
+			return nil
 		default:
-			return nil, errors.New("invalid dump type")
+			return errors.New("invalid dump type")
 		}
-	}()
-	if err != nil {
+	}(); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	if *dumpType == de.FinalDump {
+	if *req.Type == string(de.FinalDump) && req.MapSectorID != nil {
 		existsFinalDump, err := m.existsDumpService(&searchOption{
 			mapSectorID: req.MapSectorID,
-			dumpType:    dumpType,
+			dumpType:    req.Type,
 		})
 		if err != nil {
 			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -114,7 +114,7 @@ func (m *Module) addDump(c *fiber.Ctx) error {
 		Name:        req.Name,
 		MapSectorID: req.MapSectorID,
 		Coordinate:  (*de.Coordinate)(req.Coordinate),
-		Type:        dumpType,
+		Type:        req.Type,
 		Capacity:    req.Capacity,
 		Condition:   req.Condition,
 	})
@@ -150,28 +150,39 @@ func (m *Module) updateDump(c *fiber.Ctx) error {
 		}
 	}
 
-	dumpType, err := func() (*de.DumpType, error) {
+	if err := func() error {
 		if req.Type == nil {
-			return nil, nil
+			return nil
 		}
 
 		switch *req.Type {
 		case string(de.TempDump):
-			return utils.AsRef(de.TempDump), nil
+			return nil
 		case string(de.FinalDump):
-			return utils.AsRef(de.FinalDump), nil
+			return nil
 		default:
-			return nil, errors.New("invalid dump type")
+			return errors.New("invalid dump type")
 		}
-	}()
-	if err != nil {
+	}(); err != nil {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	if dumpType != nil && *dumpType == de.FinalDump {
+	dumpData, err := m.getDumpService(param.ID)
+	if err != nil {
+		if sql.IsErrRecordNotFound(err) {
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
+		}
+		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+	}
+
+	if req.Type != nil && *req.Type == string(de.FinalDump) && (req.MapSectorID != nil || dumpData.MapSectorID != nil) {
+		mapSectorID := dumpData.MapSectorID
+		if req.MapSectorID != nil {
+			mapSectorID = req.MapSectorID
+		}
 		existsFinalDump, err := m.existsDumpService(&searchOption{
-			mapSectorID: req.MapSectorID,
-			dumpType:    dumpType,
+			mapSectorID: mapSectorID,
+			dumpType:    req.Type,
 		})
 		if err != nil {
 			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -181,11 +192,11 @@ func (m *Module) updateDump(c *fiber.Ctx) error {
 		}
 	}
 
-	dumpData, err := m.updateDumpService(param.ID, &de.DumpModel{
+	dumpData, err = m.updateDumpService(param.ID, &de.DumpModel{
 		Name:        req.Name,
 		MapSectorID: req.MapSectorID,
 		Coordinate:  (*de.Coordinate)(req.Coordinate),
-		Type:        dumpType,
+		Type:        req.Type,
 		Capacity:    req.Capacity,
 		Condition:   req.Condition,
 	})

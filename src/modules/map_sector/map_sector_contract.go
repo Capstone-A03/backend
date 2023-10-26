@@ -13,7 +13,7 @@ type getMapSectorReqParam struct {
 
 type addMapSectorReq struct {
 	Name    *string        `json:"name" validate:"gt=0"`
-	Polygon *[]*coordinate `json:"polygon" validate:"gte=3"`
+	Polygon *[]*coordinate `json:"polygon" validate:"gt=0"`
 }
 
 type updateMapSectorReqParam struct {
@@ -22,7 +22,7 @@ type updateMapSectorReqParam struct {
 
 type updateMapSectorReq struct {
 	Name    *string        `json:"name" validate:"omitempty,gt=0"`
-	Polygon *[]*coordinate `json:"polygon" validate:"omitempty,gte=3"`
+	Polygon *[]*coordinate `json:"polygon" validate:"omitempty,gt=0"`
 }
 
 type deleteMapSectorReqParam struct {

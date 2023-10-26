@@ -34,9 +34,9 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 	finalDump := new(de.DumpModel)
 	tempDumps := make([]*de.DumpModel, 0, len(*dumpListData))
 	for i := range *dumpListData {
-		if *(*dumpListData)[i].Type == de.FinalDump {
+		if *(*dumpListData)[i].Type == string(de.FinalDump) {
 			finalDump = (*dumpListData)[i]
-		} else if *(*dumpListData)[i].Type == de.TempDump {
+		} else if *(*dumpListData)[i].Type == string(de.TempDump) {
 			tempDumps = append(tempDumps, (*dumpListData)[i])
 		}
 	}
