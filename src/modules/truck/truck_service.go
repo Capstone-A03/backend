@@ -8,6 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type searchOption struct {
+	byIsActive *bool
+}
+
 type paginationOption struct {
 	lastID *uuid.UUID
 	limit  *int
@@ -19,9 +23,21 @@ type paginationQuery struct {
 	total *int
 }
 
-func (m *Module) getTruckListService(pagination *paginationOption) (*[]*te.TruckModel, *paginationQuery, error) {
+func (m *Module) getTruckListService(pagination *paginationOption, search *searchOption) (*[]*te.TruckModel, *paginationQuery, error) {
 	where := []sql.FindAllWhere{}
 	limit := 0
+
+	if search != nil {
+		if search.byIsActive != nil {
+			where = append(where, sql.FindAllWhere{
+				Where: sql.Where{
+					Query: "is_active = ?",
+					Args:  []interface{}{search.byIsActive},
+				},
+				IncludeInCount: true,
+			})
+		}
+	}
 
 	if pagination != nil {
 		if pagination.lastID != nil {

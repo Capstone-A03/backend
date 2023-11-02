@@ -28,6 +28,8 @@ func (m *Module) getTruckList(c *fiber.Ctx) error {
 	truckListData, page, err := m.getTruckListService(&paginationOption{
 		lastID: query.LastID,
 		limit:  query.Limit,
+	}, &searchOption{
+		byIsActive: query.SearchByIsActive,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -98,6 +100,7 @@ func (m *Module) addTruck(c *fiber.Ctx) error {
 		Type:            req.Type,
 		Capacity:        req.Capacity,
 		FuelConsumption: req.FuelConsumption,
+		IsActive:        req.IsActive,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -149,6 +152,7 @@ func (m *Module) updateTruck(c *fiber.Ctx) error {
 		Type:            req.Type,
 		Capacity:        req.Capacity,
 		FuelConsumption: req.FuelConsumption,
+		IsActive:        req.IsActive,
 	})
 	if err != nil {
 		if sql.IsErrRecordNotFound(err) {

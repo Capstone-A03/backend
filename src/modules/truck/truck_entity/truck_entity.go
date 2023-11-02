@@ -14,6 +14,7 @@ type TruckModel struct {
 	Type            *string       `gorm:"column:type;not null" json:"type,omitempty"`
 	Capacity        *float64      `gorm:"column:capacity;not null" json:"capacity,omitempty"`
 	FuelConsumption *float64      `gorm:"column:fuel_consumption" json:"fuelConsumption,omitempty"`
+	IsActive        *bool         `gorm:"column:is_active" json:"isActive,omitempty"`
 }
 
 func (TruckModel) TableName() string {

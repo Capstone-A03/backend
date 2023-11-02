@@ -3,8 +3,9 @@ package truck
 import "github.com/google/uuid"
 
 type getTruckListReqQuery struct {
-	LastID *uuid.UUID `query:"lastId"`
-	Limit  *int       `query:"limit"`
+	SearchByIsActive *bool      `query:"isActive"`
+	LastID           *uuid.UUID `query:"lastId"`
+	Limit            *int       `query:"limit"`
 }
 
 type getTruckReqParam struct {
@@ -17,6 +18,7 @@ type addTruckReq struct {
 	Type            *string       `json:"type" validate:"gt=0"`
 	Capacity        *float64      `json:"capacity" validate:"gt=0"`
 	FuelConsumption *float64      `json:"fuelConsumption" validate:"omitempty,gt=0"`
+	IsActive        *bool         `json:"isActive" validate:"omitempty"`
 }
 
 type updateTruckReqParam struct {
@@ -29,6 +31,7 @@ type updateTruckReq struct {
 	Type            *string       `json:"type" validate:"omitempty,gt=0"`
 	Capacity        *float64      `json:"capacity" validate:"omitempty,gt=0"`
 	FuelConsumption *float64      `json:"fuelConsumption" validate:"omitempty,gt=0"`
+	IsActive        *bool         `json:"isActive" validate:"omitempty"`
 }
 
 type deleteTruckReqParam struct {
