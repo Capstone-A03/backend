@@ -8,7 +8,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.50.0
 	github.com/google/uuid v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/lestrrat-go/jwx/v2 v2.0.15
+	github.com/lestrrat-go/jwx/v2 v2.0.16
 	go.mongodb.org/mongo-driver v1.12.1
 	golang.org/x/crypto v0.14.0
 	gorm.io/driver/postgres v1.5.4
