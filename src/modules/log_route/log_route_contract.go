@@ -2,13 +2,16 @@ package logroute
 
 import (
 	"capstonea03/be/src/libs/db/mongo"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type getLogRouteListReqQuery struct {
-	LastID *mongo.ObjectID `query:"lastId"`
-	Limit  *int            `query:"limit"`
+	DriverID       *uuid.UUID      `query:"driverId"`
+	CreatedAtRange *[]*time.Time   `query:"createdAtRange" validate:"omitempty,len=2"`
+	LastID         *mongo.ObjectID `query:"lastId"`
+	Limit          *int            `query:"limit"`
 }
 
 type getLogRouteReqParam struct {

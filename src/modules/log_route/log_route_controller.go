@@ -12,8 +12,8 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/log-routes", am.AuthGuard(uc.ROLE_ADMIN), m.getLogRouteList)
-	m.App.Get("/api/v1/log-route/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getLogRoute)
+	m.App.Get("/api/v1/log-routes", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getLogRouteList)
+	m.App.Get("/api/v1/log-route/:id", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getLogRoute)
 	m.App.Post("/api/v1/log-route", am.AuthGuard(uc.ROLE_ADMIN), m.addLogRoute)
 }
 
@@ -26,8 +26,14 @@ func (m *Module) getLogRouteList(c *fiber.Ctx) error {
 	logRouteListData, page, err := m.getLogRouteListService(&paginationOption{
 		lastID: query.LastID,
 		limit:  query.Limit,
+	}, &searchOption{
+		byDriverID:       query.DriverID,
+		byCreatedAtRange: query.CreatedAtRange,
 	})
 	if err != nil {
+		if mongo.IsErrNoDocuments(err) {
+			return contracts.NewError(fiber.ErrNotFound, err.Error())
+		}
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
 

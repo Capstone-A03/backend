@@ -12,12 +12,13 @@ type getLogReportReqParam struct {
 }
 
 type addLogReportReq struct {
-	ReporterName *string         `json:"reporterName" validate:"gt=0"`
-	MediaID      *mongo.ObjectID `json:"mediaId" validate:"required"`
-	Coordinate   *coordinate     `json:"coordinate" validate:"required"`
-	Type         *string         `json:"type" validate:"gt=0"`
-	Description  *string         `json:"description" validate:"gt=0"`
-	Status       *string         `json:"status" validate:"gt=0"`
+	ReporterName  *string         `json:"reporterName" validate:"gt=0"`
+	ReporterEmail *string         `json:"reporterEmail" validate:"omitempty"`
+	MediaID       *mongo.ObjectID `json:"mediaId" validate:"required"`
+	Coordinate    *coordinate     `json:"coordinate" validate:"required"`
+	Type          *string         `json:"type" validate:"gt=0"`
+	Description   *string         `json:"description" validate:"gt=0"`
+	Status        *string         `json:"status" validate:"gt=0"`
 }
 
 type updateLogReportReqParam struct {
@@ -25,12 +26,13 @@ type updateLogReportReqParam struct {
 }
 
 type updateLogReportReq struct {
-	ReporterName *string         `json:"reporterName" validate:"omitempty,gt=0"`
-	MediaID      *mongo.ObjectID `json:"mediaId" validate:"omitempty"`
-	Coordinate   *coordinate     `json:"coordinate"`
-	Type         *string         `json:"type" validate:"omitempty,gt=0"`
-	Description  *string         `json:"description" validate:"omitempty,gt=0"`
-	Status       *string         `json:"status" validate:"omitempty,gt=0"`
+	ReporterName  *string         `json:"reporterName" validate:"omitempty,gt=0"`
+	ReporterEmail *string         `json:"reporterEmail" validate:"omitempty"`
+	MediaID       *mongo.ObjectID `json:"mediaId" validate:"omitempty"`
+	Coordinate    *coordinate     `json:"coordinate"`
+	Type          *string         `json:"type" validate:"omitempty,gt=0"`
+	Description   *string         `json:"description" validate:"omitempty,gt=0"`
+	Status        *string         `json:"status" validate:"omitempty,gt=0"`
 }
 
 type coordinate struct {

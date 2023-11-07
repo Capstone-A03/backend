@@ -12,8 +12,8 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/map-sectors", am.AuthGuard(uc.ROLE_ADMIN), m.getMapSectorList)
-	m.App.Get("/api/v1/map-sector/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getMapSector)
+	m.App.Get("/api/v1/map-sectors", m.getMapSectorList)
+	m.App.Get("/api/v1/map-sector/:id", m.getMapSector)
 	m.App.Post("/api/v1/map-sector", am.AuthGuard(uc.ROLE_ADMIN), m.addMapSector)
 	m.App.Patch("/api/v1/map-sector/:id", am.AuthGuard(uc.ROLE_ADMIN), m.updateMapSector)
 	m.App.Delete("/api/v1/map-sector/:id", am.AuthGuard(uc.ROLE_ADMIN), m.deleteMapSector)

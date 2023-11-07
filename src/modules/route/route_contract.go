@@ -3,7 +3,8 @@ package route
 import "github.com/google/uuid"
 
 type getRouteReqQuery struct {
-	MapSectorID *uuid.UUID `query:"mapSectorId" validate:"required"`
+	FinalDumpID *uuid.UUID `query:"finalDumpId" validate:"required"`
+	MapSectorID *uuid.UUID `query:"mapSectorID"`
 }
 
 type getRouteRes struct {

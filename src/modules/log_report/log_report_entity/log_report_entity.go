@@ -7,13 +7,14 @@ import (
 )
 
 type LogReportModel struct {
-	mongo.Model  `bson:"inline"`
-	ReporterName *string         `bson:"reporter_name,omitempty" json:"reporterName,omitempty"`
-	MediaID      *mongo.ObjectID `bson:"media_id,omitempty" json:"mediaId,omitempty"`
-	Coordinate   *Coordinate     `bson:"coordinate,omitempty" json:"coordinate,omitempty"`
-	Type         *string         `bson:"type,omitempty" json:"type,omitempty"`
-	Description  *string         `bson:"description,omitempty" json:"description,omitempty"`
-	Status       *string         `bson:"status,omitempty" json:"status,omitempty"`
+	mongo.Model   `bson:"inline"`
+	ReporterName  *string         `bson:"reporter_name,omitempty" json:"reporterName,omitempty"`
+	ReporterEmail *string         `bson:"reporter_email,omitempty" json:"reporterEmail,omitempty"`
+	MediaID       *mongo.ObjectID `bson:"media_id,omitempty" json:"mediaId,omitempty"`
+	Coordinate    *Coordinate     `bson:"coordinate,omitempty" json:"coordinate,omitempty"`
+	Type          *string         `bson:"type,omitempty" json:"type,omitempty"`
+	Description   *string         `bson:"description,omitempty" json:"description,omitempty"`
+	Status        *string         `bson:"status,omitempty" json:"status,omitempty"`
 }
 
 type Coordinate struct {

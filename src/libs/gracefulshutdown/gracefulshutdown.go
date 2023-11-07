@@ -34,5 +34,6 @@ func Run() {
 			logger.Log(fn.FnDescription)
 			fn.Fn()
 		}
+		close(c)
 	}()
 }

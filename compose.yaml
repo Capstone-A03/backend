@@ -36,5 +36,17 @@ services:
     depends_on:
       - capstonea03-pg
 
+  capstonea03-fe:
+    container_name: capstonea03-fe
+    image: capstonea03:nginx-alpine-slim
+    restart: unless-stopped
+    networks:
+      - capstonea03-network
+    ports:
+      - "8081:80"
+    depends_on:
+      - capstonea03-be
+
+
 networks:
   capstonea03-network:

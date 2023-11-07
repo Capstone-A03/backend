@@ -3,16 +3,18 @@ package route
 import (
 	"capstonea03/be/src/contracts"
 	"capstonea03/be/src/libs/parser"
-	am "capstonea03/be/src/modules/auth/auth_middleware"
 	de "capstonea03/be/src/modules/dump/dump_entity"
-	uc "capstonea03/be/src/modules/user/user_constant"
+	te "capstonea03/be/src/modules/truck/truck_entity"
+	"capstonea03/be/src/utils"
+	"errors"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/route", am.AuthGuard(uc.ROLE_ADMIN), m.getRoute)
+	// m.App.Get("/api/v1/route", am.AuthGuard(uc.ROLE_ADMIN), m.getRoute)
+	m.App.Get("/api/v1/route", m.getRoute)
 }
 
 func (m *Module) getRoute(c *fiber.Ctx) error {
@@ -21,41 +23,118 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	dumpListData, _, err := m.getDumpListByMapSectorIDService(query.MapSectorID)
-	if err != nil {
-		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
-	}
-
-	truckListData, _, err := m.getTruckListByMapSectorIDService(query.MapSectorID)
-	if err != nil {
-		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
-	}
-
 	finalDump := new(de.DumpModel)
-	tempDumps := make([]*de.DumpModel, 0, len(*dumpListData))
-	for i := range *dumpListData {
-		if *(*dumpListData)[i].Type == string(de.FinalDump) {
-			finalDump = (*dumpListData)[i]
-		} else if *(*dumpListData)[i].Type == string(de.TempDump) {
-			tempDumps = append(tempDumps, (*dumpListData)[i])
+	finalDumpErrCh := make(chan error)
+	go func() {
+		_finalDump, err := m.getDumpService(query.FinalDumpID)
+		if err != nil {
+			finalDumpErrCh <- err
+			return
 		}
+		if *_finalDump.Type != string(de.FinalDump) {
+			finalDumpErrCh <- errors.New("dump type is not final dump")
+		}
+		finalDump = _finalDump
+		finalDumpErrCh <- nil
+	}()
+
+	tempDumpListData := new([]*de.DumpModel)
+	tempDumpListDataErrCh := make(chan error)
+	go func() {
+		_dumpListData, _, err := m.getDumpListService(&paginationOption{
+			limit: utils.AsRef(1000),
+		}, &searchDumpListOption{
+			mapSectorID: query.MapSectorID,
+			dumpType:    utils.AsRef(string(de.TempDump)),
+		})
+		if err != nil {
+			tempDumpListDataErrCh <- err
+			return
+		}
+		tempDumpListData = _dumpListData
+		tempDumpListDataErrCh <- nil
+	}()
+
+	truckListData := new([]*te.TruckModel)
+	truckListDataErrCh := make(chan error)
+	go func() {
+		_truckListData, _, err := m.getTruckListService(&paginationOption{
+			limit: utils.AsRef(1000),
+		}, &searchTruckListOption{
+			byIsActive: utils.AsRef(true),
+		})
+		if err != nil {
+			truckListDataErrCh <- err
+			return
+		}
+		truckListData = _truckListData
+		truckListDataErrCh <- nil
+	}()
+
+	if err := <-finalDumpErrCh; err != nil {
+		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+	}
+	close(finalDumpErrCh)
+
+	if err := <-tempDumpListDataErrCh; err != nil {
+		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+	}
+	close(tempDumpListDataErrCh)
+
+	routeNodes := make([]*RouteNode, 0, len(*tempDumpListData)+1)
+	routeNodes = append(routeNodes, &RouteNode{
+		ID:                     finalDump.ID,
+		Coordinate:             (*RouteCoordinate)(finalDump.Coordinate),
+		RemainingWasteCapacity: finalDump.Capacity,
+	})
+
+	routeNodesErrChs := make([]chan error, len(*tempDumpListData))
+	for i := range routeNodesErrChs {
+		routeNodesErrChs[i] = make(chan error)
+	}
+	for i := range *tempDumpListData {
+		idx := i
+		go func() {
+			logDumpData, err := m.getLogDumpByDumpIDService((*tempDumpListData)[idx].ID)
+			if err != nil {
+				routeNodesErrChs[idx] <- err
+				return
+			}
+			if *logDumpData.MeasuredVolume >= *(*tempDumpListData)[idx].Capacity*70/100 {
+				routeNodes = append(routeNodes, &RouteNode{
+					ID:         (*tempDumpListData)[idx].ID,
+					Coordinate: (*RouteCoordinate)((*tempDumpListData)[idx].Coordinate),
+					RemainingWasteCapacity: func() *float64 {
+						raisedCapacity := *logDumpData.MeasuredVolume * 110 / 100
+						if raisedCapacity >= *(*tempDumpListData)[idx].Capacity {
+							return (*tempDumpListData)[idx].Capacity
+						}
+						return &raisedCapacity
+					}(),
+				})
+			}
+			routeNodesErrChs[idx] <- nil
+		}()
 	}
 
-	routeNodes := make([]*RouteNode, 0, len(tempDumps)+1)
-	routeNodes = append(routeNodes, &RouteNode{
-		Coordinate: (*RouteCoordinate)(finalDump.Coordinate),
-		Capacity:   finalDump.Capacity,
-	})
-	for i := range tempDumps {
-		routeNodes = append(routeNodes, &RouteNode{
-			Coordinate: (*RouteCoordinate)(tempDumps[i].Coordinate),
-			Capacity:   tempDumps[i].Capacity,
+	if err := <-truckListDataErrCh; err != nil {
+		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+	}
+	close(truckListDataErrCh)
+
+	vehiclesCapacity := make([]*VehicleCapacity, 0, len(*truckListData))
+	for i := range *truckListData {
+		vehiclesCapacity = append(vehiclesCapacity, &VehicleCapacity{
+			ID:       (*truckListData)[i].ID,
+			Capacity: (*truckListData)[i].Capacity,
 		})
 	}
 
-	vehiclesCapacity := make([]float64, 0, len(*truckListData))
-	for i := range *truckListData {
-		vehiclesCapacity = append(vehiclesCapacity, *(*truckListData)[i].Capacity)
+	for i := range routeNodesErrChs {
+		if err := <-routeNodesErrChs[i]; err != nil {
+			return contracts.NewError(fiber.ErrInternalServerError, err.Error())
+		}
+		close(routeNodesErrChs[i])
 	}
 
 	route := clarkeWrightSaving(&routeNodes, &vehiclesCapacity)
@@ -68,7 +147,7 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 		dumpIDs := make([]*uuid.UUID, 0, len((*route)[i])+1)
 		dumpIDs = append(dumpIDs, finalDump.ID)
 		for j := range (*route)[i] {
-			dumpIDs = append(dumpIDs, tempDumps[(*route)[i][j]].ID)
+			dumpIDs = append(dumpIDs, (*tempDumpListData)[(*route)[i][j]].ID)
 		}
 		*routeRes[i].DumpIDs = append(*routeRes[i].DumpIDs, dumpIDs...)
 	}

@@ -3,7 +3,15 @@ package logroute
 import (
 	"capstonea03/be/src/libs/db/mongo"
 	lre "capstonea03/be/src/modules/log_route/log_route_entity"
+	"time"
+
+	"github.com/google/uuid"
 )
+
+type searchOption struct {
+	byDriverID       *uuid.UUID
+	byCreatedAtRange *[]*time.Time
+}
 
 type paginationOption struct {
 	lastID *mongo.ObjectID
@@ -16,9 +24,37 @@ type paginationQuery struct {
 	total *int
 }
 
-func (m *Module) getLogRouteListService(pagination *paginationOption) (*[]*lre.LogRouteModel, *paginationQuery, error) {
+func (m *Module) getLogRouteListService(pagination *paginationOption, search *searchOption) (*[]*lre.LogRouteModel, *paginationQuery, error) {
 	where := []mongo.FindAllWhere{}
 	limit := 0
+
+	if search != nil {
+		if search.byDriverID != nil {
+			where = append(where, mongo.FindAllWhere{
+				Where: mongo.Where{{
+					Key:   "driver_id",
+					Value: search.byDriverID,
+				}},
+				IncludeInCount: true,
+			})
+		}
+
+		if search.byCreatedAtRange != nil && len(*search.byCreatedAtRange) == 2 {
+			where = append(where, mongo.FindAllWhere{
+				Where: mongo.Where{{
+					Key: "created_at",
+					Value: mongo.Where{{
+						Key:   "$gte",
+						Value: (*search.byCreatedAtRange)[0],
+					}, {
+						Key:   "$lt",
+						Value: (*search.byCreatedAtRange)[1],
+					}},
+				}},
+				IncludeInCount: true,
+			})
+		}
+	}
 
 	if pagination != nil {
 		if !mongo.IsEmptyObjectID(pagination.lastID) {
