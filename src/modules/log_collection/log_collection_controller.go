@@ -12,9 +12,9 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/log-collections", am.AuthGuard(uc.ROLE_ADMIN), m.getLogCollectionList)
-	m.App.Get("/api/v1/log-collection/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getLogCollection)
-	m.App.Post("/api/v1/log-collection", am.AuthGuard(uc.ROLE_ADMIN), m.addLogCollection)
+	m.App.Get("/api/v1/log-collections", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getLogCollectionList)
+	m.App.Get("/api/v1/log-collection/:id", am.AuthGuard(uc.ROLE_ADMIN, uc.ROLE_JANITOR), m.getLogCollection)
+	m.App.Post("/api/v1/log-collection", am.AuthGuard(uc.ROLE_JANITOR), m.addLogCollection)
 }
 
 func (m *Module) getLogCollectionList(c *fiber.Ctx) error {
