@@ -25,11 +25,11 @@ func (m *Module) getTruckList(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	truckListData, page, err := m.getTruckListService(&paginationOption{
+	truckListData, page, err := m.getTruckListService(&searchOption{
+		byIsActive: query.SearchByIsActive,
+	}, &paginationOption{
 		lastID: query.LastID,
 		limit:  query.Limit,
-	}, &searchOption{
-		byIsActive: query.SearchByIsActive,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -71,28 +71,28 @@ func (m *Module) addTruck(c *fiber.Ctx) error {
 	}
 
 	if req.MapSectorIDs != nil && len(*req.MapSectorIDs) > 0 {
-		ch := make([]chan error, len(*req.MapSectorIDs))
-		for i := range ch {
-			ch[i] = make(chan error)
+		chs := make([]chan error, len(*req.MapSectorIDs))
+		for i := range chs {
+			chs[i] = make(chan error)
 		}
 		for i := range *req.MapSectorIDs {
 			idx := i
 			go func() {
 				if _, err := m.getMapSectorService((*req.MapSectorIDs)[idx]); err != nil {
-					ch[idx] <- err
+					chs[idx] <- err
 					return
 				}
-				ch[idx] <- nil
+				chs[idx] <- nil
 			}()
 		}
-		for i := range ch {
-			if err := <-ch[i]; err != nil {
+		for i := range chs {
+			if err := <-chs[i]; err != nil {
 				if sql.IsErrRecordNotFound(err) {
 					return contracts.NewError(fiber.ErrBadRequest, err.Error())
 				}
 				return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 			}
-			defer close(ch[i])
+			defer close(chs[i])
 		}
 	}
 
@@ -125,28 +125,28 @@ func (m *Module) updateTruck(c *fiber.Ctx) error {
 	}
 
 	if req.MapSectorIDs != nil {
-		ch := make([]chan error, len(*req.MapSectorIDs))
-		for i := range ch {
-			ch[i] = make(chan error)
+		chs := make([]chan error, len(*req.MapSectorIDs))
+		for i := range chs {
+			chs[i] = make(chan error)
 		}
 		for i := range *req.MapSectorIDs {
 			idx := i
 			go func() {
 				if _, err := m.getMapSectorService((*req.MapSectorIDs)[idx]); err != nil {
-					ch[idx] <- err
+					chs[idx] <- err
 					return
 				}
-				ch[idx] <- nil
+				chs[idx] <- nil
 			}()
 		}
-		for i := range ch {
-			if err := <-ch[i]; err != nil {
+		for i := range chs {
+			if err := <-chs[i]; err != nil {
 				if sql.IsErrRecordNotFound(err) {
 					return contracts.NewError(fiber.ErrBadRequest, err.Error())
 				}
 				return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 			}
-			close(ch[i])
+			close(chs[i])
 		}
 	}
 

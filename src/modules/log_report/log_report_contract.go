@@ -1,6 +1,10 @@
 package logreport
 
-import "capstonea03/be/src/libs/db/mongo"
+import (
+	"capstonea03/be/src/libs/db/mongo"
+
+	"github.com/google/uuid"
+)
 
 type getLogReportListReqQuery struct {
 	LastID *mongo.ObjectID `query:"lastId"`
@@ -12,9 +16,9 @@ type getLogReportReqParam struct {
 }
 
 type addLogReportReq struct {
-	ReporterName  *string         `json:"reporterName" validate:"gt=0"`
 	ReporterEmail *string         `json:"reporterEmail" validate:"omitempty"`
 	MediaID       *mongo.ObjectID `json:"mediaId" validate:"required"`
+	DumpID        *uuid.UUID      `json:"dumpId" validate:"omitempty"`
 	Coordinate    *coordinate     `json:"coordinate" validate:"required"`
 	Type          *string         `json:"type" validate:"gt=0"`
 	Description   *string         `json:"description" validate:"gt=0"`
@@ -26,10 +30,10 @@ type updateLogReportReqParam struct {
 }
 
 type updateLogReportReq struct {
-	ReporterName  *string         `json:"reporterName" validate:"omitempty,gt=0"`
 	ReporterEmail *string         `json:"reporterEmail" validate:"omitempty"`
 	MediaID       *mongo.ObjectID `json:"mediaId" validate:"omitempty"`
-	Coordinate    *coordinate     `json:"coordinate"`
+	DumpID        *uuid.UUID      `json:"dumpId" validate:"omitempty"`
+	Coordinate    *coordinate     `json:"coordinate" validate:"omitempty"`
 	Type          *string         `json:"type" validate:"omitempty,gt=0"`
 	Description   *string         `json:"description" validate:"omitempty,gt=0"`
 	Status        *string         `json:"status" validate:"omitempty,gt=0"`

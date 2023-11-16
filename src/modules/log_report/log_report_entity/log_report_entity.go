@@ -4,13 +4,15 @@ import (
 	"capstonea03/be/src/libs/db/mongo"
 	"capstonea03/be/src/libs/env"
 	applogger "capstonea03/be/src/libs/logger"
+
+	"github.com/google/uuid"
 )
 
 type LogReportModel struct {
 	mongo.Model   `bson:"inline"`
-	ReporterName  *string         `bson:"reporter_name,omitempty" json:"reporterName,omitempty"`
 	ReporterEmail *string         `bson:"reporter_email,omitempty" json:"reporterEmail,omitempty"`
 	MediaID       *mongo.ObjectID `bson:"media_id,omitempty" json:"mediaId,omitempty"`
+	DumpID        *uuid.UUID      `bson:"dump_id,omitempty" json:"dump_id"`
 	Coordinate    *Coordinate     `bson:"coordinate,omitempty" json:"coordinate,omitempty"`
 	Type          *string         `bson:"type,omitempty" json:"type,omitempty"`
 	Description   *string         `bson:"description,omitempty" json:"description,omitempty"`

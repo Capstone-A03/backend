@@ -26,11 +26,11 @@ func (m *Module) getUserList(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	userListData, page, err := m.getUserListService(&paginationOption{
+	userListData, page, err := m.getUserListService(&searchOption{
+		byRole: query.SearchByRole,
+	}, &paginationOption{
 		lastID: query.LastID,
 		limit:  query.Limit,
-	}, &searchOption{
-		byRole: query.SearchByRole,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())

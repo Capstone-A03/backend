@@ -7,9 +7,9 @@ import (
 	te "capstonea03/be/src/modules/truck/truck_entity"
 	"capstonea03/be/src/utils"
 	"errors"
+	"sync"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 func (m *Module) controller() {
@@ -33,6 +33,7 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 		}
 		if *_finalDump.Type != string(de.FinalDump) {
 			finalDumpErrCh <- errors.New("dump type is not final dump")
+			return
 		}
 		finalDump = _finalDump
 		finalDumpErrCh <- nil
@@ -41,11 +42,11 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 	tempDumpListData := new([]*de.DumpModel)
 	tempDumpListDataErrCh := make(chan error)
 	go func() {
-		_dumpListData, _, err := m.getDumpListService(&paginationOption{
-			limit: utils.AsRef(1000),
-		}, &searchDumpListOption{
+		_dumpListData, _, err := m.getDumpListService(&searchDumpListOption{
 			mapSectorID: query.MapSectorID,
 			dumpType:    utils.AsRef(string(de.TempDump)),
+		}, &paginationOption{
+			limit: utils.AsRef(-1),
 		})
 		if err != nil {
 			tempDumpListDataErrCh <- err
@@ -58,10 +59,10 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 	truckListData := new([]*te.TruckModel)
 	truckListDataErrCh := make(chan error)
 	go func() {
-		_truckListData, _, err := m.getTruckListService(&paginationOption{
-			limit: utils.AsRef(1000),
-		}, &searchTruckListOption{
+		_truckListData, _, err := m.getTruckListService(&searchTruckListOption{
 			byIsActive: utils.AsRef(true),
+		}, &paginationOption{
+			limit: utils.AsRef(-1),
 		})
 		if err != nil {
 			truckListDataErrCh <- err
@@ -82,6 +83,7 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 	close(tempDumpListDataErrCh)
 
 	routeNodes := make([]*RouteNode, 0, len(*tempDumpListData)+1)
+	routeNodesMutex := sync.Mutex{}
 	routeNodes = append(routeNodes, &RouteNode{
 		ID:                     finalDump.ID,
 		Coordinate:             (*RouteCoordinate)(finalDump.Coordinate),
@@ -101,6 +103,7 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 				return
 			}
 			if *logDumpData.MeasuredVolume >= *(*tempDumpListData)[idx].Capacity*70/100 {
+				routeNodesMutex.Lock()
 				routeNodes = append(routeNodes, &RouteNode{
 					ID:         (*tempDumpListData)[idx].ID,
 					Coordinate: (*RouteCoordinate)((*tempDumpListData)[idx].Coordinate),
@@ -112,6 +115,7 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 						return &raisedCapacity
 					}(),
 				})
+				routeNodesMutex.Unlock()
 			}
 			routeNodesErrChs[idx] <- nil
 		}()
@@ -125,8 +129,9 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 	vehiclesCapacity := make([]*VehicleCapacity, 0, len(*truckListData))
 	for i := range *truckListData {
 		vehiclesCapacity = append(vehiclesCapacity, &VehicleCapacity{
-			ID:       (*truckListData)[i].ID,
-			Capacity: (*truckListData)[i].Capacity,
+			ID:             (*truckListData)[i].ID,
+			Capacity:       (*truckListData)[i].Capacity,
+			FilledCapacity: utils.AsRef(0.0),
 		})
 	}
 
@@ -140,16 +145,30 @@ func (m *Module) getRoute(c *fiber.Ctx) error {
 	route := clarkeWrightSaving(&routeNodes, &vehiclesCapacity)
 
 	routeRes := make([]*getRouteRes, 0, len(*route))
-	for i := range *route {
-		routeRes = append(routeRes, &getRouteRes{
-			TruckID: (*truckListData)[i].ID,
-		})
-		dumpIDs := make([]*uuid.UUID, 0, len((*route)[i])+1)
-		dumpIDs = append(dumpIDs, finalDump.ID)
-		for j := range (*route)[i] {
-			dumpIDs = append(dumpIDs, (*tempDumpListData)[(*route)[i][j]].ID)
+	for _, r := range *route {
+		truck := new(te.TruckModel)
+		for i := range *truckListData {
+			if *r.TruckID == *(*truckListData)[i].ID {
+				truck = (*truckListData)[i]
+				break
+			}
 		}
-		*routeRes[i].DumpIDs = append(*routeRes[i].DumpIDs, dumpIDs...)
+		dumps := make([]*de.DumpModel, 0, len(*r.DumpIDs))
+		for i := range *r.DumpIDs {
+			if *(*r.DumpIDs)[i] == *finalDump.ID {
+				dumps = append(dumps, finalDump)
+				continue
+			}
+			for j := range *tempDumpListData {
+				if *(*r.DumpIDs)[i] == *(*tempDumpListData)[j].ID {
+					dumps = append(dumps, (*tempDumpListData)[j])
+				}
+			}
+		}
+		routeRes = append(routeRes, &getRouteRes{
+			Truck: truck,
+			Dumps: &dumps,
+		})
 	}
 
 	return c.Status(fiber.StatusOK).JSON(&contracts.Response{

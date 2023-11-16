@@ -12,7 +12,6 @@ type LogDumpModel struct {
 	mongo.Model    `bson:"inline"`
 	DumpID         *uuid.UUID `bson:"dump_id,omitempty" json:"dumpId,omitempty"`
 	MeasuredVolume *float64   `bson:"measured_volume,omitempty" json:"measuredVolume,omitempty"`
-	MeasuredWeight *float64   `bson:"measured_weight,omitempty" json:"measuredWeight,omitempty"`
 }
 
 func (LogDumpModel) DatabaseName() string {

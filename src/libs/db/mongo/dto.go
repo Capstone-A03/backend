@@ -5,13 +5,12 @@ import (
 )
 
 type Where []primitive.E
+type Order []primitive.E
 
 type FindAllWhere struct {
 	Where          Where
 	IncludeInCount bool
 }
-
-type Order []primitive.E
 
 type CountOptions struct {
 	Where *[]Where
@@ -23,11 +22,15 @@ type FindOneOptions struct {
 }
 
 type FindAllOptions struct {
-	Where   *[]FindAllWhere
-	Order   *[]Order
-	Limit   *int
-	Offset  *int
-	AfterID *primitive.ObjectID
+	Where  *[]FindAllWhere
+	Order  *[]Order
+	Limit  *int
+	Offset *int
+}
+
+type DistinctOptions struct {
+	FieldName string
+	Where     *[]FindAllWhere
 }
 
 type UpdateOptions struct {

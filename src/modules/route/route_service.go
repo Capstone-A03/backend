@@ -31,13 +31,13 @@ type paginationQuery struct {
 	total *int
 }
 
-func (m *Module) getDumpListService(pagination *paginationOption, search *searchDumpListOption) (*[]*de.DumpModel, *paginationQuery, error) {
-	where := []sql.FindAllWhere{}
-	limit := 0
+func (m *Module) getDumpListService(search *searchDumpListOption, pagination *paginationOption) (*[]*de.DumpModel, *paginationQuery, error) {
+	where := new([]sql.FindAllWhere)
+	limit := new(int)
 
 	if search != nil {
 		if search.mapSectorID != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "map_sector_id = ?",
 					Args:  []interface{}{search.mapSectorID},
@@ -47,7 +47,7 @@ func (m *Module) getDumpListService(pagination *paginationOption, search *search
 		}
 
 		if search.dumpType != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "type = ?",
 					Args:  []interface{}{search.dumpType},
@@ -63,7 +63,7 @@ func (m *Module) getDumpListService(pagination *paginationOption, search *search
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "created_at < ?",
 					Args:  []interface{}{mcuData.CreatedAt},
@@ -72,14 +72,14 @@ func (m *Module) getDumpListService(pagination *paginationOption, search *search
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := de.Repository().FindAll(&sql.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]string{"created_at desc"},
 	})
 	if err != nil {
@@ -112,16 +112,17 @@ func (*Module) getLogDumpByDumpIDService(dumpID *uuid.UUID) (*lde.LogDumpModel, 
 				Value: dumpID,
 			},
 		}},
+		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
 	})
 }
 
-func (m *Module) getTruckListService(pagination *paginationOption, search *searchTruckListOption) (*[]*te.TruckModel, *paginationQuery, error) {
-	where := []sql.FindAllWhere{}
-	limit := 0
+func (m *Module) getTruckListService(search *searchTruckListOption, pagination *paginationOption) (*[]*te.TruckModel, *paginationQuery, error) {
+	where := new([]sql.FindAllWhere)
+	limit := new(int)
 
 	if search != nil {
 		if search.byMapSectorID != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "? = ANY(map_sector_ids)",
 					Args:  []interface{}{search.byMapSectorID},
@@ -130,7 +131,7 @@ func (m *Module) getTruckListService(pagination *paginationOption, search *searc
 			})
 		}
 		if search.byIsActive != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "is_active = ?",
 					Args:  []interface{}{search.byIsActive},
@@ -146,7 +147,7 @@ func (m *Module) getTruckListService(pagination *paginationOption, search *searc
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "created_at < ?",
 					Args:  []interface{}{truckData.CreatedAt},
@@ -155,14 +156,14 @@ func (m *Module) getTruckListService(pagination *paginationOption, search *searc
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := te.Repository().FindAll(&sql.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]string{"created_at desc"},
 	})
 	if err != nil {

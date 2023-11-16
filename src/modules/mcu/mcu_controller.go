@@ -69,8 +69,7 @@ func (m *Module) addMcu(c *fiber.Ctx) error {
 	}
 
 	mcuData, err := m.addMcuService(&mcue.McuModel{
-		DumpID:     req.DumpID,
-		Coordinate: (*mcue.Coordinate)(req.Coordinate),
+		DumpID: req.DumpID,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
@@ -93,8 +92,7 @@ func (m *Module) updateMcu(c *fiber.Ctx) error {
 	}
 
 	mcuData, err := m.updateMcuService(param.ID, &mcue.McuModel{
-		DumpID:     req.DumpID,
-		Coordinate: (*mcue.Coordinate)(req.Coordinate),
+		DumpID: req.DumpID,
 	})
 	if err != nil {
 		if sql.IsErrRecordNotFound(err) {

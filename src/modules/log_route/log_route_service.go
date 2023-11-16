@@ -24,13 +24,13 @@ type paginationQuery struct {
 	total *int
 }
 
-func (m *Module) getLogRouteListService(pagination *paginationOption, search *searchOption) (*[]*lre.LogRouteModel, *paginationQuery, error) {
-	where := []mongo.FindAllWhere{}
-	limit := 0
+func (m *Module) getLogRouteListService(search *searchOption, pagination *paginationOption) (*[]*lre.LogRouteModel, *paginationQuery, error) {
+	where := new([]mongo.FindAllWhere)
+	limit := new(int)
 
 	if search != nil {
 		if search.byDriverID != nil {
-			where = append(where, mongo.FindAllWhere{
+			*where = append(*where, mongo.FindAllWhere{
 				Where: mongo.Where{{
 					Key:   "driver_id",
 					Value: search.byDriverID,
@@ -40,7 +40,7 @@ func (m *Module) getLogRouteListService(pagination *paginationOption, search *se
 		}
 
 		if search.byCreatedAtRange != nil && len(*search.byCreatedAtRange) == 2 {
-			where = append(where, mongo.FindAllWhere{
+			*where = append(*where, mongo.FindAllWhere{
 				Where: mongo.Where{{
 					Key: "created_at",
 					Value: mongo.Where{{
@@ -62,7 +62,7 @@ func (m *Module) getLogRouteListService(pagination *paginationOption, search *se
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, mongo.FindAllWhere{
+			*where = append(*where, mongo.FindAllWhere{
 				Where: mongo.Where{{
 					Key: "created_at",
 					Value: mongo.Where{{
@@ -74,14 +74,14 @@ func (m *Module) getLogRouteListService(pagination *paginationOption, search *se
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := lre.Repository().FindAll(&mongo.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
 	})
 	if err != nil {

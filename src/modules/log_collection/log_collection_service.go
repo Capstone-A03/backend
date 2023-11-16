@@ -17,8 +17,8 @@ type paginationQuery struct {
 }
 
 func (m *Module) getLogCollectionListService(pagination *paginationOption) (*[]*lce.LogCollectionModel, *paginationQuery, error) {
-	where := []mongo.FindAllWhere{}
-	limit := 0
+	where := new([]mongo.FindAllWhere)
+	limit := new(int)
 
 	if pagination != nil {
 		if !mongo.IsEmptyObjectID(pagination.lastID) {
@@ -26,7 +26,7 @@ func (m *Module) getLogCollectionListService(pagination *paginationOption) (*[]*
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, mongo.FindAllWhere{
+			*where = append(*where, mongo.FindAllWhere{
 				Where: mongo.Where{{
 					Key: "created_at",
 					Value: mongo.Where{{
@@ -38,14 +38,14 @@ func (m *Module) getLogCollectionListService(pagination *paginationOption) (*[]*
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := lce.Repository().FindAll(&mongo.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]mongo.Order{{{Key: "created_at", Value: -1}}},
 	})
 	if err != nil {

@@ -22,6 +22,7 @@ import (
 	"capstonea03/be/src/modules/mcu"
 	"capstonea03/be/src/modules/media"
 	"capstonea03/be/src/modules/public"
+	pushnotification "capstonea03/be/src/modules/push_notification"
 	"capstonea03/be/src/modules/route"
 	"capstonea03/be/src/modules/truck"
 	"capstonea03/be/src/modules/user"
@@ -167,5 +168,9 @@ func (m *module) load() {
 	logdump.Load(&logdump.Module{
 		App:      m.app,
 		DBClient: mongoDBClient,
+	})
+
+	pushnotification.Load(&pushnotification.Module{
+		App: m.app,
 	})
 }

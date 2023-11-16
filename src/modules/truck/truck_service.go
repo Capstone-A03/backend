@@ -23,13 +23,13 @@ type paginationQuery struct {
 	total *int
 }
 
-func (m *Module) getTruckListService(pagination *paginationOption, search *searchOption) (*[]*te.TruckModel, *paginationQuery, error) {
-	where := []sql.FindAllWhere{}
-	limit := 0
+func (m *Module) getTruckListService(search *searchOption, pagination *paginationOption) (*[]*te.TruckModel, *paginationQuery, error) {
+	where := new([]sql.FindAllWhere)
+	limit := new(int)
 
 	if search != nil {
 		if search.byIsActive != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "is_active = ?",
 					Args:  []interface{}{search.byIsActive},
@@ -45,7 +45,7 @@ func (m *Module) getTruckListService(pagination *paginationOption, search *searc
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "created_at < ?",
 					Args:  []interface{}{truckData.CreatedAt},
@@ -54,14 +54,14 @@ func (m *Module) getTruckListService(pagination *paginationOption, search *searc
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := te.Repository().FindAll(&sql.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]string{"created_at desc"},
 	})
 	if err != nil {

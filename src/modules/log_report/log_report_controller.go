@@ -74,9 +74,9 @@ func (m *Module) addLogReport(c *fiber.Ctx) error {
 	}
 
 	logReportData, err := m.addLogReportService(&lre.LogReportModel{
-		ReporterName:  req.ReporterName,
 		ReporterEmail: req.ReporterEmail,
 		MediaID:       req.MediaID,
+		DumpID:        req.DumpID,
 		Coordinate:    (*lre.Coordinate)(req.Coordinate),
 		Type:          req.Type,
 		Description:   req.Description,
@@ -112,9 +112,9 @@ func (m *Module) updateLogReport(c *fiber.Ctx) error {
 	}
 
 	logReportData, err := m.updateLogReportService(param.ID, &lre.LogReportModel{
-		ReporterName:  req.ReporterName,
 		ReporterEmail: req.ReporterEmail,
 		MediaID:       req.MediaID,
+		DumpID:        req.DumpID,
 		Coordinate:    (*lre.Coordinate)(req.Coordinate),
 		Type:          req.Type,
 		Description:   req.Description,

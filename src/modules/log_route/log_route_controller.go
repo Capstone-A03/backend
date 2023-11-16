@@ -23,12 +23,12 @@ func (m *Module) getLogRouteList(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	logRouteListData, page, err := m.getLogRouteListService(&paginationOption{
-		lastID: query.LastID,
-		limit:  query.Limit,
-	}, &searchOption{
+	logRouteListData, page, err := m.getLogRouteListService(&searchOption{
 		byDriverID:       query.DriverID,
 		byCreatedAtRange: query.CreatedAtRange,
+	}, &paginationOption{
+		lastID: query.LastID,
+		limit:  query.Limit,
 	})
 	if err != nil {
 		if mongo.IsErrNoDocuments(err) {

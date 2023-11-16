@@ -119,14 +119,17 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
 	optsFind := options.Find()
 
-	if findOptions != nil && findOptions.Limit != nil && *findOptions.Limit > 0 {
-		if *findOptions.Limit < FindAllMaximumLimit {
-			optsFind = optsFind.SetLimit(int64(*findOptions.Limit))
-		} else {
-			optsFind = optsFind.SetLimit(FindAllMaximumLimit)
+	if findOptions != nil && findOptions.Limit != nil {
+		if *findOptions.Limit > 0 && *findOptions.Limit > FindAllMaximumLimit {
+			*findOptions.Limit = FindAllMaximumLimit
+		} else if *findOptions.Limit == 0 {
+			*findOptions.Limit = FindAllDefaultLimit
 		}
 	} else {
-		optsFind = optsFind.SetLimit(FindAllDefaultLimit)
+		*findOptions.Limit = FindAllDefaultLimit
+	}
+	if *findOptions.Limit != -1 {
+		optsFind = optsFind.SetLimit(int64(*findOptions.Limit))
 	}
 
 	where := bson.D{}
@@ -170,6 +173,19 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 		}
 	}
 
+	if findOptions != nil && findOptions.Limit != nil {
+		if *findOptions.Limit > FindAllMaximumLimit {
+			*findOptions.Limit = FindAllMaximumLimit
+		} else if *findOptions.Limit == 0 {
+			*findOptions.Limit = FindAllDefaultLimit
+		}
+	} else {
+		*findOptions.Limit = FindAllDefaultLimit
+	}
+	if *findOptions.Limit != -1 {
+		optsFind = optsFind.SetLimit(int64(*findOptions.Limit))
+	}
+
 	cursor, err := coll.Find(context.TODO(), where, optsFind)
 	if err != nil {
 		logger.Error(err)
@@ -182,10 +198,45 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	}
 
 	return docStruct, &Pagination{
-		Limit: int(*optsFind.Limit),
+		Limit: int(*findOptions.Limit),
 		Count: len(*docStruct),
 		Total: int(total),
 	}, nil
+}
+
+func (s *Service[T]) Distinct(distinctOptions *DistinctOptions) ([]interface{}, error) {
+	model := new(T)
+
+	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+
+	where := bson.D{}
+	if distinctOptions != nil {
+		if distinctOptions.Where != nil {
+			for i := range *distinctOptions.Where {
+				if (*distinctOptions.Where)[i].IncludeInCount {
+					where = append(where, (*distinctOptions.Where)[i].Where...)
+				}
+			}
+		}
+	}
+
+	if distinctOptions != nil {
+		if distinctOptions.Where != nil {
+			for i := range *distinctOptions.Where {
+				if !(*distinctOptions.Where)[i].IncludeInCount {
+					where = append(where, (*distinctOptions.Where)[i].Where...)
+				}
+			}
+		}
+	}
+
+	values, err := coll.Distinct(context.TODO(), distinctOptions.FieldName, where)
+	if err != nil {
+		logger.Error(err)
+		return nil, err
+	}
+
+	return values, nil
 }
 
 func (s *Service[T]) Create(data *T) (*ObjectID, error) {

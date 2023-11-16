@@ -12,9 +12,11 @@ import (
 )
 
 func (m *Module) controller() {
-	m.App.Get("/api/v1/log-dumps", am.AuthGuard(uc.ROLE_ADMIN), m.getLogDumpList)
+	// TODO!: Add admin auth guard
+	m.App.Get("/api/v1/log-dumps", m.getLogDumpList)
 	m.App.Get("/api/v1/log-dump/:id", am.AuthGuard(uc.ROLE_ADMIN), m.getLogDump)
-	m.App.Post("/api/v1/log-dump", am.AuthGuard(uc.ROLE_ADMIN), m.addLogDump)
+	// TODO!: Add mcu auth guard
+	m.App.Post("/api/v1/log-dump", m.addLogDump)
 }
 
 func (m *Module) getLogDumpList(c *fiber.Ctx) error {
@@ -23,10 +25,16 @@ func (m *Module) getLogDumpList(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
-	logDumpListData, page, err := m.getLogDumpListService(&paginationOption{
-		lastID: query.LastID,
-		limit:  query.Limit,
-	})
+	logDumpListData, page, err := m.getLogDumpListService(
+		&searchOption{
+			unique: query.Unique,
+			from:   query.From,
+			to:     query.To,
+		},
+		&paginationOption{
+			lastID: query.LastID,
+			limit:  query.Limit,
+		})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
@@ -66,10 +74,14 @@ func (m *Module) addLogDump(c *fiber.Ctx) error {
 		return contracts.NewError(fiber.ErrBadRequest, err.Error())
 	}
 
+	volume, err := convertVolumeToM3(req.MeasuredVolume, req.VolumeUnit)
+	if err != nil {
+		return contracts.NewError(fiber.ErrBadRequest, err.Error())
+	}
+
 	logDumpData, err := m.addLogDumpService(&lde.LogDumpModel{
 		DumpID:         req.DumpID,
-		MeasuredVolume: req.MeasuredVolume,
-		MeasuredWeight: req.MeasuredWeight,
+		MeasuredVolume: volume,
 	})
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())

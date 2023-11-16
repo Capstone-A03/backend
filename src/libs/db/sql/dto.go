@@ -35,6 +35,7 @@ type FindOneOptions struct {
 type FindAllOptions struct {
 	Where         *[]FindAllWhere
 	Order         *[]string
+	Distinct      *[]string
 	Limit         *int
 	Offset        *int
 	IncludeTables *[]IncludeTables

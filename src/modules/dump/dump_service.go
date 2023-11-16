@@ -70,12 +70,12 @@ func (*Module) countMapSectorService(search *searchMapSectorOption) (*int64, err
 }
 
 func (m *Module) getDumpListService(search *searchOption, pagination *paginationOption) (*[]*de.DumpModel, *paginationQuery, error) {
-	where := []sql.FindAllWhere{}
-	limit := 0
+	where := new([]sql.FindAllWhere)
+	limit := new(int)
 
 	if search != nil {
 		if search.mapSectorID != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "map_sector_id = ?",
 					Args:  []interface{}{search.mapSectorID},
@@ -85,7 +85,7 @@ func (m *Module) getDumpListService(search *searchOption, pagination *pagination
 		}
 
 		if search.dumpType != nil {
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "type = ?",
 					Args:  []interface{}{search.dumpType},
@@ -101,7 +101,7 @@ func (m *Module) getDumpListService(search *searchOption, pagination *pagination
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "created_at < ?",
 					Args:  []interface{}{mcuData.CreatedAt},
@@ -110,14 +110,14 @@ func (m *Module) getDumpListService(search *searchOption, pagination *pagination
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := de.Repository().FindAll(&sql.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]string{"created_at desc"},
 	})
 	if err != nil {

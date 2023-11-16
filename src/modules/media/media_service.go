@@ -39,7 +39,7 @@ func (*Module) deleteMediaService(id *mongo.ObjectID) error {
 
 func (m *Module) addMediaFileService(id *mongo.ObjectID, file *[]byte) error {
 	return localstorage.SaveBinaryData(file, &localstorage.Option{
-		Filename:       id.String(),
+		Filename:       id.Hex(),
 		Subdirectory:   "media",
 		FilePermission: localstorage.OS_USER_RW,
 	})

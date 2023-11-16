@@ -19,8 +19,8 @@ type paginationQuery struct {
 }
 
 func (m *Module) getMcuListService(pagination *paginationOption) (*[]*mcue.McuModel, *paginationQuery, error) {
-	where := []sql.FindAllWhere{}
-	limit := 0
+	where := new([]sql.FindAllWhere)
+	limit := new(int)
 
 	if pagination != nil {
 		if pagination.lastID != nil {
@@ -28,7 +28,7 @@ func (m *Module) getMcuListService(pagination *paginationOption) (*[]*mcue.McuMo
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "created_at < ?",
 					Args:  []interface{}{mcuData.CreatedAt},
@@ -37,14 +37,14 @@ func (m *Module) getMcuListService(pagination *paginationOption) (*[]*mcue.McuMo
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := mcue.Repository().FindAll(&sql.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]string{"created_at desc"},
 	})
 	if err != nil {

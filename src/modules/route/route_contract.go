@@ -1,6 +1,11 @@
 package route
 
-import "github.com/google/uuid"
+import (
+	de "capstonea03/be/src/modules/dump/dump_entity"
+	te "capstonea03/be/src/modules/truck/truck_entity"
+
+	"github.com/google/uuid"
+)
 
 type getRouteReqQuery struct {
 	FinalDumpID *uuid.UUID `query:"finalDumpId" validate:"required"`
@@ -8,6 +13,6 @@ type getRouteReqQuery struct {
 }
 
 type getRouteRes struct {
-	TruckID *uuid.UUID    `json:"truckId"`
-	DumpIDs *[]*uuid.UUID `json:"dumpIds"`
+	Truck *te.TruckModel   `json:"truck"`
+	Dumps *[]*de.DumpModel `json:"dumps"`
 }

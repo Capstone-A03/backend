@@ -19,8 +19,8 @@ type paginationQuery struct {
 }
 
 func (m *Module) getMapSectorListService(pagination *paginationOption) (*[]*mse.MapSectorModel, *paginationQuery, error) {
-	where := []sql.FindAllWhere{}
-	limit := 0
+	where := new([]sql.FindAllWhere)
+	limit := new(int)
 
 	if pagination != nil {
 		if pagination.lastID != nil {
@@ -28,7 +28,7 @@ func (m *Module) getMapSectorListService(pagination *paginationOption) (*[]*mse.
 			if err != nil {
 				return nil, nil, err
 			}
-			where = append(where, sql.FindAllWhere{
+			*where = append(*where, sql.FindAllWhere{
 				Where: sql.Where{
 					Query: "created_at < ?",
 					Args:  []interface{}{mapSectorData.CreatedAt},
@@ -37,14 +37,14 @@ func (m *Module) getMapSectorListService(pagination *paginationOption) (*[]*mse.
 			})
 		}
 
-		if pagination.limit != nil && *pagination.limit > 0 {
-			limit = *pagination.limit
+		if pagination.limit != nil {
+			*limit = *pagination.limit
 		}
 	}
 
 	data, page, err := mse.Repository().FindAll(&sql.FindAllOptions{
-		Where: &where,
-		Limit: &limit,
+		Where: where,
+		Limit: limit,
 		Order: &[]string{"created_at desc"},
 	})
 	if err != nil {

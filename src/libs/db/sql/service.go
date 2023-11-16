@@ -133,48 +133,65 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 
 	selectQuery := s.db.Model(docStruct)
 
-	if findOptions.IncludeTables != nil {
-		for _, table := range *findOptions.IncludeTables {
-			selectQuery = selectQuery.Preload(table.Query, table.Args...)
-		}
-	}
-	if findOptions.Where != nil {
-		for _, where := range *findOptions.Where {
-			if where.IncludeInCount {
-				selectQuery = selectQuery.Where(where.Where.Query, where.Where.Args...)
+	if findOptions != nil {
+		if findOptions.IncludeTables != nil {
+			for _, table := range *findOptions.IncludeTables {
+				selectQuery = selectQuery.Preload(table.Query, table.Args...)
 			}
 		}
-	}
-	if findOptions.IsUnscoped {
-		selectQuery = selectQuery.Unscoped()
-	}
-
-	var total int64
-	selectQuery.Count(&total)
-
-	if findOptions.Where != nil {
-		for _, where := range *findOptions.Where {
-			if !where.IncludeInCount {
-				selectQuery = selectQuery.Where(where.Where.Query, where.Where.Args...)
+		if findOptions.Distinct != nil {
+			distincts := make([]interface{}, 0, len(*findOptions.Distinct))
+			for _, where := range *findOptions.Distinct {
+				distincts = append(distincts, where)
+			}
+			selectQuery.Distinct(distincts...)
+		}
+		if findOptions.Where != nil {
+			for _, where := range *findOptions.Where {
+				if where.IncludeInCount {
+					selectQuery = selectQuery.Where(where.Where.Query, where.Where.Args...)
+				}
 			}
 		}
-	}
-	if findOptions.Order != nil {
-		for _, order := range *findOptions.Order {
-			selectQuery = selectQuery.Order(order)
+		if findOptions.IsUnscoped {
+			selectQuery = selectQuery.Unscoped()
 		}
 	}
-	if findOptions.Limit != nil && *findOptions.Limit > 0 {
+
+	total := new(int64)
+	if err := selectQuery.Count(total).Error; err != nil {
+		logger.Error(err)
+		return nil, nil, err
+	}
+
+	if findOptions != nil {
+		if findOptions.Where != nil {
+			for _, where := range *findOptions.Where {
+				if !where.IncludeInCount {
+					selectQuery = selectQuery.Where(where.Where.Query, where.Where.Args...)
+				}
+			}
+		}
+		if findOptions.Order != nil {
+			for _, order := range *findOptions.Order {
+				selectQuery = selectQuery.Order(order)
+			}
+		}
+		if findOptions.Offset != nil && *findOptions.Offset > 0 {
+			selectQuery = selectQuery.Offset(*findOptions.Offset)
+		}
+	}
+	if findOptions != nil && findOptions.Limit != nil {
 		if *findOptions.Limit > FindAllMaximumLimit {
 			*findOptions.Limit = FindAllMaximumLimit
+		} else if *findOptions.Limit == 0 {
+			*findOptions.Limit = FindAllDefaultLimit
 		}
 	} else {
 		*findOptions.Limit = FindAllDefaultLimit
 	}
-	selectQuery = selectQuery.Limit(*findOptions.Limit)
-
-	if findOptions.Offset != nil && *findOptions.Offset > 0 {
-		selectQuery = selectQuery.Offset(*findOptions.Offset)
+	if *findOptions.Limit != -1 {
+		selectQuery = selectQuery.Limit(*findOptions.Limit)
 	}
 
 	if err := selectQuery.Find(docStruct).Error; err != nil {
@@ -185,7 +202,7 @@ func (s *Service[T]) FindAll(findOptions *FindAllOptions) (*[]*T, *Pagination, e
 	return docStruct, &Pagination{
 		Limit: *findOptions.Limit,
 		Count: len(*docStruct),
-		Total: int(total),
+		Total: int(*total),
 	}, nil
 }
 

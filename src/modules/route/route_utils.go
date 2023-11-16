@@ -24,8 +24,12 @@ type RouteCoordinate struct {
 	Longitude *float64
 }
 
-func clarkeWrightSaving(routeNodes *[]*RouteNode, vehiclesCapacity *[]*VehicleCapacity) *[][]int {
-	println("savings")
+type generatedRoute struct {
+	TruckID *uuid.UUID
+	DumpIDs *[]*uuid.UUID
+}
+
+func clarkeWrightSaving(routeNodes *[]*RouteNode, vehiclesCapacity *[]*VehicleCapacity) *[]*generatedRoute {
 	sort.Slice(*vehiclesCapacity, func(i, j int) bool {
 		return *(*vehiclesCapacity)[i].Capacity > *(*vehiclesCapacity)[j].Capacity
 	})
@@ -43,7 +47,7 @@ func clarkeWrightSaving(routeNodes *[]*RouteNode, vehiclesCapacity *[]*VehicleCa
 	for i := 1; i < numPoints; i++ {
 		for j := 1; j < i; j++ {
 			saving := distanceMatrix[0][i] + distanceMatrix[0][j] - distanceMatrix[i][j]
-			savings = append(savings, []interface{}{i - 1, j - 1, saving})
+			savings = append(savings, []interface{}{i, j, saving})
 		}
 	}
 
@@ -51,7 +55,7 @@ func clarkeWrightSaving(routeNodes *[]*RouteNode, vehiclesCapacity *[]*VehicleCa
 		return savings[i][2].(float64) > savings[j][2].(float64)
 	})
 
-	route := [][]int{}
+	route := new([]*generatedRoute)
 	vehicleIndex := 0
 	visitedPoint := []int{}
 
@@ -83,21 +87,30 @@ savingsLoop:
 				vehicleIndex++
 			}
 
-			if len(route)-1 < vehicleIndex {
-				route = append(route, []int{})
+			for len(*route)-1 < vehicleIndex {
+				*route = append(*route, &generatedRoute{
+					TruckID: (*vehiclesCapacity)[vehicleIndex].ID,
+					DumpIDs: &[]*uuid.UUID{},
+				})
 			}
 
 			if !(idx > 0 && savings[idx][0].(int) == savings[idx-1][1].(int)) {
 				visitedPoint = append(visitedPoint, savings[idx][0].(int))
-				route[vehicleIndex] = append(route[vehicleIndex], savings[idx][0].(int))
+				if len(*(*route)[vehicleIndex].DumpIDs) == 0 {
+					*(*route)[vehicleIndex].DumpIDs = append(*(*route)[vehicleIndex].DumpIDs, (*routeNodes)[0].ID)
+				}
+				*(*route)[vehicleIndex].DumpIDs = append(*(*route)[vehicleIndex].DumpIDs, (*routeNodes)[savings[idx][0].(int)].ID)
 			}
 
 			visitedPoint = append(visitedPoint, savings[idx][1].(int))
-			route[vehicleIndex] = append(route[vehicleIndex], savings[idx][1].(int))
+			if len(*(*route)[vehicleIndex].DumpIDs) == 0 {
+				*(*route)[vehicleIndex].DumpIDs = append(*(*route)[vehicleIndex].DumpIDs, (*routeNodes)[0].ID)
+			}
+			*(*route)[vehicleIndex].DumpIDs = append(*(*route)[vehicleIndex].DumpIDs, (*routeNodes)[savings[idx][1].(int)].ID)
 		}
 	}
 
-	return &route
+	return route
 }
 
 func calculateDistance(coordinate1, coordinate2 *RouteCoordinate) float64 {
