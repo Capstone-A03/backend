@@ -40,16 +40,18 @@ func (m *Module) controller() {
 		go func() {
 			for {
 				select {
-				case close := <-closeCh:
-					if close {
+				case isClose := <-closeCh:
+					if isClose {
 						return
 					}
 				default:
 					if _, msg, err := c.ReadMessage(); err == nil {
 						if string(msg) == "PING" {
 							clientPing = true
-							ticker.Reset(0)
+							ticker.Reset(5 * time.Second)
 						}
+					} else {
+						return
 					}
 				}
 
@@ -66,11 +68,11 @@ func (m *Module) controller() {
 					}
 				case <-tickerChan:
 					if !clientPing {
-						c.Close()
 						closeCh <- true
+						ticker.Stop()
 					}
-				case close := <-closeCh:
-					if close {
+				case isClose := <-closeCh:
+					if isClose {
 						c.Close()
 						return
 					}
@@ -78,6 +80,7 @@ func (m *Module) controller() {
 			}
 		}()
 
+		<-closeCh
 	}, websocket.Config{
 		RecoverHandler: func(c *websocket.Conn) {
 			if err := recover(); err != nil {
