@@ -6,6 +6,7 @@ import (
 	"capstonea03/be/src/libs/db/sql"
 	"capstonea03/be/src/libs/parser"
 	lre "capstonea03/be/src/modules/log_report/log_report_entity"
+	pn "capstonea03/be/src/modules/push_notification"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -85,6 +86,10 @@ func (m *Module) addLogReport(c *fiber.Ctx) error {
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
+
+	go func() {
+		pn.Send(2, "Laporan masuk", "Ada laporan masuk dari warga mengenai penumpukan sampah", logReportData)
+	}()
 
 	return c.Status(fiber.StatusCreated).JSON(&contracts.Response{
 		Data: logReportData,

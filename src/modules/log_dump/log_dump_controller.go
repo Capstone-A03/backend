@@ -6,7 +6,9 @@ import (
 	"capstonea03/be/src/libs/parser"
 	am "capstonea03/be/src/modules/auth/auth_middleware"
 	lde "capstonea03/be/src/modules/log_dump/log_dump_entity"
+	pn "capstonea03/be/src/modules/push_notification"
 	uc "capstonea03/be/src/modules/user/user_constant"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -86,6 +88,20 @@ func (m *Module) addLogDump(c *fiber.Ctx) error {
 	if err != nil {
 		return contracts.NewError(fiber.ErrInternalServerError, err.Error())
 	}
+
+	go func() {
+		dumpData, err := m.getDumpService(req.DumpID)
+		if err != nil {
+			return
+		}
+		capacityFilled := *logDumpData.MeasuredVolume / *dumpData.Capacity * 100
+		if capacityFilled >= 70 {
+			pn.Send(1, "TPS sudah hampir penuh", fmt.Sprintf("%.4f%% volume TPS %s sudah terisi", capacityFilled, *dumpData.Name), pushNotification{
+				Dump:    dumpData,
+				LogDump: logDumpData,
+			})
+		}
+	}()
 
 	return c.Status(fiber.StatusCreated).JSON(&contracts.Response{
 		Data: logDumpData,

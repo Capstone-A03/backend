@@ -1,6 +1,10 @@
 package contracts
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/bytedance/sonic"
+	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2"
+)
 
 type Response struct {
 	Error      *Error      `json:"error,omitempty"`
@@ -27,6 +31,17 @@ func NewError(err *fiber.Error, message string) Error {
 		Status:  err.Error(),
 		Message: message,
 	}
+}
+
+func NewWSRes[T any](c *websocket.Conn, data T) error {
+	bytes, err := sonic.ConfigFastest.Marshal(data)
+	if err != nil {
+		return err
+	}
+	if err := c.WriteMessage(websocket.TextMessage, bytes); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (e Error) Error() string {

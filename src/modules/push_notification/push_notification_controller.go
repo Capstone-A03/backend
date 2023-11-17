@@ -3,8 +3,8 @@ package pushnotification
 import (
 	"capstonea03/be/src/contracts"
 	"strconv"
+	"time"
 
-	"github.com/bytedance/sonic"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,18 +18,66 @@ func (m *Module) controller() {
 	})
 
 	m.App.Get("/api/v1/push_notification", websocket.New(func(c *websocket.Conn) {
-		for {
-			data := <-sendCh
-			bytes, err := sonic.ConfigFastest.Marshal(data)
-			if err != nil {
+		query := new(getPushNotificationWsReqQuery)
+		query.token = c.Query("token")
+		if len(query.token) == 0 {
+			errRes := contracts.NewError(fiber.ErrBadRequest, "token required")
+			if err := contracts.NewWSRes(c, errRes); err != nil {
 				m.logger.Error(err)
-				break
 			}
-			if err := c.WriteMessage(websocket.BinaryMessage, bytes); err != nil {
+			if err := c.Close(); err != nil {
 				m.logger.Error(err)
-				break
 			}
+			return
 		}
+
+		ticker := time.NewTicker(5 * time.Second)
+		tickerChan := ticker.C
+
+		closeCh := make(chan bool)
+
+		clientPing := false
+		go func() {
+			for {
+				select {
+				case close := <-closeCh:
+					if close {
+						return
+					}
+				default:
+					if _, msg, err := c.ReadMessage(); err == nil {
+						if string(msg) == "PING" {
+							clientPing = true
+							ticker.Reset(0)
+						}
+					}
+				}
+
+			}
+		}()
+
+		go func() {
+			for {
+				select {
+				case data := <-sendCh:
+					if err := contracts.NewWSRes(c, data); err != nil {
+						m.logger.Error(err)
+						closeCh <- true
+					}
+				case <-tickerChan:
+					if !clientPing {
+						c.Close()
+						closeCh <- true
+					}
+				case close := <-closeCh:
+					if close {
+						c.Close()
+						return
+					}
+				}
+			}
+		}()
+
 	}, websocket.Config{
 		RecoverHandler: func(c *websocket.Conn) {
 			if err := recover(); err != nil {

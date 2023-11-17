@@ -2,10 +2,14 @@ package logdump
 
 import (
 	"capstonea03/be/src/libs/db/mongo"
+	"capstonea03/be/src/libs/db/sql"
+	de "capstonea03/be/src/modules/dump/dump_entity"
 	lde "capstonea03/be/src/modules/log_dump/log_dump_entity"
 	"capstonea03/be/src/utils"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type searchOption struct {
@@ -157,6 +161,17 @@ func (*Module) getLogDumpService(id *mongo.ObjectID) (*lde.LogDumpModel, error) 
 				Value: id,
 			},
 		}},
+	})
+}
+
+func (*Module) getDumpService(id *uuid.UUID) (*de.DumpModel, error) {
+	return de.Repository().FindOne(&sql.FindOneOptions{
+		Where: &[]sql.Where{
+			{
+				Query: "id = ?",
+				Args:  []interface{}{id},
+			},
+		},
 	})
 }
 
