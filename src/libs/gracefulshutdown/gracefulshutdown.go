@@ -30,9 +30,9 @@ func Run() {
 		if len(fnsRunInShutdown) > 0 {
 			logger.Log("start clearing resources")
 		}
-		for _, fn := range fnsRunInShutdown {
-			logger.Log(fn.FnDescription)
-			fn.Fn()
+		for i := range fnsRunInShutdown {
+			logger.Log(fnsRunInShutdown[len(fnsRunInShutdown)-(i+1)].FnDescription)
+			fnsRunInShutdown[len(fnsRunInShutdown)-(i+1)].Fn()
 		}
 		close(c)
 	}()

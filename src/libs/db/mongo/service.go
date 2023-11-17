@@ -91,6 +91,7 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 	docStruct := new(T)
 
 	coll := s.client.Database((*model).DatabaseName()).Collection((*model).CollectionName())
+	optsFindOne := options.FindOne()
 
 	where := bson.D{}
 	if findOptions != nil {
@@ -99,9 +100,15 @@ func (s *Service[T]) FindOne(findOptions *FindOneOptions) (*T, error) {
 				where = append(where, (*findOptions.Where)[i]...)
 			}
 		}
+
+		if findOptions.Order != nil {
+			for i := range *findOptions.Order {
+				optsFindOne = optsFindOne.SetSort((*findOptions.Order)[i])
+			}
+		}
 	}
 
-	if err := coll.FindOne(context.TODO(), where).Decode(docStruct); err != nil {
+	if err := coll.FindOne(context.TODO(), where, optsFindOne).Decode(docStruct); err != nil {
 		if !IsErrNoDocuments(err) {
 			logger.Error(err)
 		}
